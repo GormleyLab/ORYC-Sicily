@@ -145,7 +145,7 @@ horizon, so a normal run legitimately reports `legs with forecast: 0/7`. Use
 - [x] **Settings → Pages → Deploy from branch → `main` / root**
 - [x] **Settings → Secrets → Actions →** add `ANTHROPIC_API_KEY`
 - [x] Run *Actions → Update weather → Run workflow* once to seed the data
-- [ ] **Verify the waypoints** — see below
+- [ ] **Verify the waypoints** — see below, and `MOORINGS.md`
 
 Setup is done; the site is live at <https://gormleylab.github.io/ORYC-Sicily/>.
 Verified with `gh`, not assumed — visibility PUBLIC, Pages `built` from `main` /

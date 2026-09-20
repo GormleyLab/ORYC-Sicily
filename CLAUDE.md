@@ -40,7 +40,8 @@ briefing that rebuilds on a cron — daily before the trip, twice daily during
 it. No build step: a GitHub Action runs Python, commits `data/weather.json`,
 and Pages serves it. The browser makes no API calls.
 
-See `README.md` for the full architecture and setup checklist.
+See `README.md` for the full architecture and setup checklist, and
+`MOORINGS.md` for how to add, edit, remove or verify a mooring.
 
 ## Locked-in decisions (do not relitigate without the owner)
 
