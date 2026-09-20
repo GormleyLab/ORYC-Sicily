@@ -200,8 +200,11 @@ Two tests enforce this, in `scripts/test_sailing.py`:
 Widening `SECTOR_AUTHORITIES` is a deliberate decision about what counts as
 evidence. Make it on purpose; never delete an assertion to make a flag stick.
 
-One mooring is currently unverified: **Baia Milazzese**. Its sector is still
-ray-cast, and it shares its water with Cala Zimmari.
+**All twelve moorings are currently verified** — ten by the pilot, Drautto and
+Portorosa by the owner. Baia Milazzese used to be the thirteenth; it was
+deleted as a duplicate of Cala Zimmari, 40 m away, which the pilot treats as
+the same anchorage. Cala Zimmari carries both names so the itinerary's
+"Baia Milazzese" still resolves to something on the map.
 
 ## After any change
 

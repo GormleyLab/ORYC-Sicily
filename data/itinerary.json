@@ -22,15 +22,24 @@
       "headline": "Arrive, provision, skippers' meeting and group dinner.",
       "prose": "You need to be at the Portorosa marina Saturday afternoon October 3. If you have elected to stay the extra night at Verdura, we are scheduled to depart around 11:00 am and with a possible lunch in Cefalù, en route to Portorosa.\n\nTucked into the northeast end of Sicily just west of Milazzo, Portorosa Marina is in the town of Tonnarella. We need to arrive Saturday mid-afternoon to be able to provision our vessels. Our boats will be available at 5:00 pm. There will be a mandatory meeting with all skippers, followed by cocktails and a group dinner.",
       "mooring_info": "Portorosa Marina - fully enclosed marina berths. Boats available from 17:00.",
-      "mooring_options": ["portorosa"],
-      "things_to_do": ["Provisioning", "Skippers' meeting", "Cocktails and group dinner"],
+      "mooring_options": [
+        "portorosa"
+      ],
+      "things_to_do": [
+        "Provisioning",
+        "Skippers' meeting",
+        "Cocktails and group dinner"
+      ],
       "sailing": null,
       "dining": {
         "type": "group_dinner",
         "label": "Group dinner at Portorosa",
         "note": "Follows the mandatory skippers' meeting and cocktails."
       },
-      "flags": ["Mandatory skippers' meeting", "Boats available 17:00"]
+      "flags": [
+        "Mandatory skippers' meeting",
+        "Boats available 17:00"
+      ]
     },
     {
       "day": 2,
@@ -42,10 +51,28 @@
       "headline": "The largest and oldest of the Aeolians - Greek acropolis, Norman cathedral, island wines.",
       "prose": "The largest, oldest, and most densely populated of the Aeolian Islands, Lipari has an ancient Greek acropolis with later Norman and 16th-century castle and fortress walls. See the 11th-century Lipari Cathedral, originally built by Norman Count Roger I (whose wife was a cousin of William the Conqueror) and rebuilt in Baroque style after Ottoman destruction in 1544. Visit the Aeolian Museum in Lipari town and enjoy a superb local wine at one of the vineyards located on the east coast.",
       "mooring_info": "The largest harbor in the Aeolians is Porto Pignataro, the safest port in the Aeolian Islands. On the east side of the island, where you'll find dockage at the marinas as well as other amenities for yachts. Fuel and water are available at Porto Lipari. To the southwest of the island, there is a beautiful bay called Valle Muria, where anchoring is very safe and the scenery is magnificent. The best anchorage is off the west and southwest side of the island between Le Formiche and Punta La Grotticelle.",
-      "mooring_options": ["lipari_pignataro", "lipari_marina_lunga", "lipari_valle_muria"],
-      "things_to_do": ["Swimming", "Sunbathing", "Snorkeling", "Diving", "Shopping", "Museum tours"],
-      "sailing": {"leg": "portorosa-lipari", "distance_nm": 22, "hours_at_6kt": "3:40"},
-      "dining": {"type": "port_captain", "label": "Port Captain coordinates a reservation ashore"},
+      "mooring_options": [
+        "lipari_pignataro",
+        "lipari_marina_lunga",
+        "lipari_valle_muria"
+      ],
+      "things_to_do": [
+        "Swimming",
+        "Sunbathing",
+        "Snorkeling",
+        "Diving",
+        "Shopping",
+        "Museum tours"
+      ],
+      "sailing": {
+        "leg": "portorosa-lipari",
+        "distance_nm": 22,
+        "hours_at_6kt": "3:40"
+      },
+      "dining": {
+        "type": "port_captain",
+        "label": "Port Captain coordinates a reservation ashore"
+      },
       "flags": []
     },
     {
@@ -58,11 +85,29 @@
       "headline": "Smallest and oldest inhabited of the Aeolians - black sand, whitewashed houses, jet-set nightlife.",
       "prose": "Panarea is the smallest and oldest inhabited of the Aeolian Islands. It is known for its exclusive and fashionable atmosphere, attracting the international jet set with its black sand beaches, whitewashed houses, and vibrant nightlife. The island is a popular destination for both its natural beauty, including crystal-clear waters and rugged cliffs, and its lively social scene. Go ashore to explore the charming port town and ascend the Punta del Corvo for the magnificent panoramic views from the top.",
       "mooring_info": "Panarea has a convenient buoy field in Drautto and San Pietro. You can anchor at Baia Milazzese, Drautto, or Cala Zimmari.",
-      "mooring_options": ["panarea_sanpietro", "panarea_drautto", "panarea_zimmari", "panarea_milazzese"],
-      "things_to_do": ["Explore the port town", "Hike Punta del Corvo", "Swimming", "Nightlife"],
-      "sailing": {"leg": "lipari-panarea", "distance_nm": 12, "hours_at_6kt": "2:00"},
-      "dining": {"type": "port_captain", "label": "Port Captain coordinates a reservation ashore"},
-      "flags": ["Two nights on Panarea (Mon + Tue) unless you take the Stromboli option"]
+      "mooring_options": [
+        "panarea_sanpietro",
+        "panarea_drautto",
+        "panarea_zimmari"
+      ],
+      "things_to_do": [
+        "Explore the port town",
+        "Hike Punta del Corvo",
+        "Swimming",
+        "Nightlife"
+      ],
+      "sailing": {
+        "leg": "lipari-panarea",
+        "distance_nm": 12,
+        "hours_at_6kt": "2:00"
+      },
+      "dining": {
+        "type": "port_captain",
+        "label": "Port Captain coordinates a reservation ashore"
+      },
+      "flags": [
+        "Two nights on Panarea (Mon + Tue) unless you take the Stromboli option"
+      ]
     },
     {
       "day": 3,
@@ -74,15 +119,37 @@
       "headline": "Optional: the Lighthouse of the Mediterranean, in near-continuous eruption since 300 BC.",
       "prose": "Instead of staying in Panarea for both Monday and Tuesday nights, you have an option of going to Stromboli for Monday night. There is a small town, but Stromboli has few restaurants; we're probably having dinner on board. You would rejoin the group on Tuesday back in Panarea.\n\nThe Romans started calling Stromboli the “Lighthouse of the Mediterranean” about 300 BC. It has been in nearly continuous eruption since.\n\nTake a scenic half-hour hike up to the top of the observatory area, where you can dine at the restaurant with breathtaking views. Alternatively, you can book an afternoon excursion to the volcano. This is a 5-6 hour excursion, which can only be done with a guide. The recommended company is MAGMATREK.\n\nSciara del Fuoco at Night: we will watch the volcano erupt at night from the water by sailing to the northwest side of Stromboli after dark. The red lava rolls down the “Stream of Fire” into the sea.",
       "mooring_info": "At Stromboli, do not consider anchoring as it is very rocky. We will reserve buoys in Marina del Gabbiano, 600m north of Scari.",
-      "mooring_options": ["stromboli_gabbiano"],
-      "things_to_do": ["Hike to the observatory", "Guided volcano excursion (MAGMATREK, 5-6 h)", "Sciara del Fuoco night sail"],
-      "sailing": {"leg": "lipari-stromboli", "distance_nm": 26, "hours_at_6kt": "4:10"},
-      "dining": {"type": "on_board", "label": "Dinner on board - few restaurants ashore"},
-      "links": [
-        {"label": "Smithsonian Global Volcanism Program - Stromboli", "url": "https://volcano.si.edu/volcano.cfm?vn=211040"},
-        {"label": "Sciara del Fuoco (Wikipedia)", "url": "https://en.wikipedia.org/wiki/Sciara_del_Fuoco"}
+      "mooring_options": [
+        "stromboli_gabbiano"
       ],
-      "flags": ["Do NOT anchor - very rocky", "Rejoin the fleet at Panarea on Tuesday"]
+      "things_to_do": [
+        "Hike to the observatory",
+        "Guided volcano excursion (MAGMATREK, 5-6 h)",
+        "Sciara del Fuoco night sail"
+      ],
+      "sailing": {
+        "leg": "lipari-stromboli",
+        "distance_nm": 26,
+        "hours_at_6kt": "4:10"
+      },
+      "dining": {
+        "type": "on_board",
+        "label": "Dinner on board - few restaurants ashore"
+      },
+      "links": [
+        {
+          "label": "Smithsonian Global Volcanism Program - Stromboli",
+          "url": "https://volcano.si.edu/volcano.cfm?vn=211040"
+        },
+        {
+          "label": "Sciara del Fuoco (Wikipedia)",
+          "url": "https://en.wikipedia.org/wiki/Sciara_del_Fuoco"
+        }
+      ],
+      "flags": [
+        "Do NOT anchor - very rocky",
+        "Rejoin the fleet at Panarea on Tuesday"
+      ]
     },
     {
       "day": 4,
@@ -94,10 +161,26 @@
       "headline": "Second night on Panarea - the Stromboli group rejoins the fleet.",
       "prose": "The fleet reconvenes at Panarea. Those who took the Stromboli option sail back to rejoin the group.",
       "mooring_info": "Panarea has a convenient buoy field in Drautto and San Pietro. You can anchor at Baia Milazzese, Drautto, or Cala Zimmari.",
-      "mooring_options": ["panarea_sanpietro", "panarea_drautto", "panarea_zimmari", "panarea_milazzese"],
-      "things_to_do": ["Swimming", "Snorkeling", "Explore the port town"],
-      "sailing": {"leg": "stromboli-panarea", "distance_nm": 11, "hours_at_6kt": "1:50", "optional": true},
-      "dining": {"type": "port_captain", "label": "Port Captain coordinates a reservation ashore"},
+      "mooring_options": [
+        "panarea_sanpietro",
+        "panarea_drautto",
+        "panarea_zimmari"
+      ],
+      "things_to_do": [
+        "Swimming",
+        "Snorkeling",
+        "Explore the port town"
+      ],
+      "sailing": {
+        "leg": "stromboli-panarea",
+        "distance_nm": 11,
+        "hours_at_6kt": "1:50",
+        "optional": true
+      },
+      "dining": {
+        "type": "port_captain",
+        "label": "Port Captain coordinates a reservation ashore"
+      },
       "flags": []
     },
     {
@@ -110,11 +193,29 @@
       "headline": "The most pristine of the archipelago - sea caves, La Canna, and Bronze Age ruins.",
       "prose": "Filicudi is one of the oldest and most pristine islands in the archipelago, offering a rugged, serene escape from the busier ports. Known for its crystal-clear waters and dramatic coastal formations, it is a paradise for nature lovers. A major highlight is the Grotta del Bue Marino, a stunning sea cave, as well as La Canna, a towering 71-meter-high volcanic rock pinnacle rising dramatically from the sea. Ashore, you can hike to the prehistoric village of Capo Graziano, whose ruins date back to the Bronze Age and offer spectacular panoramic views over the Mediterranean. The island remains beautifully undeveloped, providing a quiet, laid-back atmosphere perfect for a relaxing day.",
       "mooring_info": "You can moor at the small port of Filicudi Porto, which offers limited dockage and mooring buoys, or drop anchor in the picturesque and sheltered bay of Pecorini a Mare on the southern coast.",
-      "mooring_options": ["filicudi_porto", "filicudi_pecorini"],
-      "things_to_do": ["Swimming", "Snorkeling", "Exploring sea caves", "Hiking to Capo Graziano", "Relaxing in unspoiled nature"],
-      "sailing": {"leg": "panarea-filicudi", "distance_nm": 28, "hours_at_6kt": "4:30"},
-      "dining": {"type": "port_captain", "label": "Port Captain coordinates a reservation ashore"},
-      "flags": ["Longest leg of the trip - 28 nm"]
+      "mooring_options": [
+        "filicudi_porto",
+        "filicudi_pecorini"
+      ],
+      "things_to_do": [
+        "Swimming",
+        "Snorkeling",
+        "Exploring sea caves",
+        "Hiking to Capo Graziano",
+        "Relaxing in unspoiled nature"
+      ],
+      "sailing": {
+        "leg": "panarea-filicudi",
+        "distance_nm": 28,
+        "hours_at_6kt": "4:30"
+      },
+      "dining": {
+        "type": "port_captain",
+        "label": "Port Captain coordinates a reservation ashore"
+      },
+      "flags": [
+        "Longest leg of the trip - 28 nm"
+      ]
     },
     {
       "day": 6,
@@ -126,15 +227,34 @@
       "headline": "Ferns, freshwater springs, Malvasia and capers - and the final evening all together.",
       "prose": "Salina is known for its lush landscape and vast wooded area of ferns known as La Fossa delle Felci. Throughout the island, there are several freshwater springs to enjoy and the panoramic views from atop Salina's three towering peaks are nothing short of awe-inspiring. A number of scooter and bike rentals are available to help make the commute to the top more pleasant, and Santa Marina Salina offers a selection of waterfront restaurants with local seafood dishes.\n\nPollara is a prime location for diving or enjoying the sunset. The movie Il Postino, about Pablo Neruda, was filmed at Pollara Bay.\n\nSalina is very picturesque by scooter. Scooter rentals are available right at the port - book in advance if you want one.\n\nOnce you have safely moored at the port of Santa Marina Salina, you can visit the main street of Malfa and enjoy an aperitif in one of the magnificent resorts on the island or watch the sunset from the Pollara viewpoint. We will be organizing some Salina Wine and Caper Tastings, featuring Malvasia delle Lipari, an amazing dessert wine.",
       "mooring_info": "Porto Santa Marina has floating piers and mooring buoys. Rinella, on the south side of the island, is a scenic and protected anchorage, with a dinghy dock.",
-      "mooring_options": ["salina_santamarina", "salina_rinella"],
-      "things_to_do": ["Sunbathing", "Swimming", "Snorkeling", "Diving", "Shopping", "Wine and caper berry tasting", "Sunset at Pollara", "Scooter rental (book ahead)"],
-      "sailing": {"leg": "filicudi-salina", "distance_nm": 15, "hours_at_6kt": "2:30"},
+      "mooring_options": [
+        "salina_santamarina",
+        "salina_rinella"
+      ],
+      "things_to_do": [
+        "Sunbathing",
+        "Swimming",
+        "Snorkeling",
+        "Diving",
+        "Shopping",
+        "Wine and caper berry tasting",
+        "Sunset at Pollara",
+        "Scooter rental (book ahead)"
+      ],
+      "sailing": {
+        "leg": "filicudi-salina",
+        "distance_nm": 15,
+        "hours_at_6kt": "2:30"
+      },
       "dining": {
         "type": "group_dinner",
         "label": "Cocktails and group dinner on Salina",
         "note": "Final evening all together, for all sailors."
       },
-      "flags": ["Book scooter rentals in advance", "Final evening all together"]
+      "flags": [
+        "Book scooter rentals in advance",
+        "Final evening all together"
+      ]
     },
     {
       "day": 7,
@@ -146,11 +266,25 @@
       "headline": "Return passage to Portorosa - arrive no later than 16:00.",
       "prose": "On Friday, we will sail back to the marina in Portorosa and need to arrive no later than 4:00 pm.\n\nFrom there, you may either spend your last night aboard your yacht or disembark for the airport or other destinations.\n\nFor those staying the night, we may arrange a potluck dinner to use up the provisions.",
       "mooring_info": "Portorosa Marina - fully enclosed marina berths.",
-      "mooring_options": ["portorosa"],
-      "things_to_do": ["Return passage", "Potluck dinner aboard for those staying"],
-      "sailing": {"leg": "salina-portorosa", "distance_nm": 24, "hours_at_6kt": "4:00"},
-      "dining": {"type": "potluck", "label": "Possible potluck dinner aboard - use up the provisions"},
-      "flags": ["Hard arrival deadline: 16:00"]
+      "mooring_options": [
+        "portorosa"
+      ],
+      "things_to_do": [
+        "Return passage",
+        "Potluck dinner aboard for those staying"
+      ],
+      "sailing": {
+        "leg": "salina-portorosa",
+        "distance_nm": 24,
+        "hours_at_6kt": "4:00"
+      },
+      "dining": {
+        "type": "potluck",
+        "label": "Possible potluck dinner aboard - use up the provisions"
+      },
+      "flags": [
+        "Hard arrival deadline: 16:00"
+      ]
     },
     {
       "day": 8,
@@ -162,11 +296,15 @@
       "headline": "Disembark by 09:00.",
       "prose": "Disembark by 9:00 am.",
       "mooring_info": "Portorosa Marina.",
-      "mooring_options": ["portorosa"],
+      "mooring_options": [
+        "portorosa"
+      ],
       "things_to_do": [],
       "sailing": null,
       "dining": null,
-      "flags": ["Disembark by 09:00"]
+      "flags": [
+        "Disembark by 09:00"
+      ]
     }
   ]
 }

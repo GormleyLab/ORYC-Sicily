@@ -49,7 +49,6 @@ ANCHORS = {
     "panarea_sanpietro":   (None, 38.6390, 15.0790),   # no OSM feature; off the village
     "panarea_drautto":     (None, 38.6315, 15.0775),   # no OSM feature; off the beach
     "panarea_zimmari":     (None, 38.6288, 15.0790),   # no OSM feature
-    "panarea_milazzese":   (None, 38.6264, 15.0664),   # OSM anchorage node
     "stromboli_gabbiano":  (None, 38.8007, 15.2441),   # OSM anchorage, 600 m N of Scari
     "filicudi_porto":      (None, 38.5606, 14.5858),   # OSM anchorage off the port
     "filicudi_pecorini":   (None, 38.5579, 14.5677),   # OSM anchorage

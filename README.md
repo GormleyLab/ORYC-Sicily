@@ -185,19 +185,23 @@ the refuge in an easterly.
 Drautto, Baia Milazzese and Portorosa are not described in that chapter and
 keep their derived sectors with `verified: false`.
 
-## ⚠ Before the fleet relies on this
+## Before the fleet relies on this
 
-Three moorings — Drautto, Baia Milazzese and Portorosa — still carry
-`"verified": false`, because the pilot chapter does not describe them. Their
-sectors come from OSM geometry, which cannot see swell refraction, depth,
-holding ground, or a low spit that stops swell but not wind. **The shelter rankings are
-only as good as those sectors** — a wrong sector produces a confidently wrong
-recommendation, which is the worst failure this site could have.
+**All twelve moorings now carry `"verified": true`** — ten from the Imray pilot
+chapter, and Drautto and Portorosa from the fleet owner, who sails them. Two
+authorities may close an exposure sector and nothing else; see `MOORINGS.md`,
+where two tests enforce it.
 
-Work through them on the map against satellite imagery and a pilot book,
-confirm each sits in the right bay with the right exposure, and flip
-`verified` to `true`. The page badges every unverified mooring and shows a
-standing warning until they are all done.
+That is not the same as saying every number is right. **The shelter rankings
+are only as good as those sectors** — a wrong sector produces a confidently
+wrong recommendation, which is the worst failure this site could have. One
+caveat is on the record and unresolved: at Drautto, 200 m further offshore the
+arc widens from 97–227 to 76–243, so a boat on an outer buoy may be less
+sheltered than the stored figure says.
+
+The go / caution / no-go thresholds in `sailing.py` are still conservative
+defaults for 45 ft cats, meant to be tuned by the fleet captain, and the page
+says so.
 
 The site is a planning aid, not a navigation tool. Always verify against the
 Guardia Costiera and Meteomar bulletins before departure.

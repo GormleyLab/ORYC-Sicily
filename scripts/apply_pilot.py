@@ -122,8 +122,6 @@ PILOT = {
 
 NOT_IN_PILOT = {
     "panarea_drautto": "Not described separately in the Isole Eolie chapter.",
-    "panarea_milazzese": "The pilot treats Baia Milazzese and Cala Zimmari together "
-                         "and gives one waypoint; this entry keeps its derived sector.",
     "portorosa": "On the north Sicily coast, outside the Isole Eolie chapter.",
 }
 

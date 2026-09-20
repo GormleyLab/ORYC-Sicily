@@ -102,7 +102,7 @@
       "verification_note": "Verified by the fleet owner, not by the pilot book, which does not describe this bay. Position and sector both confirmed. The NE exposure a second source reported was raised and settled: the owner first thought there was some, then on looking again judged the protection sufficient, so the arc stays as derived and does NOT need a NE segment - it has been considered, not overlooked. One thing the owner was not asked: 200 m further offshore the arc widens to 76-243, so a boat on an outer buoy may be less sheltered than this figure. The earlier position, 38.6315,15.0775, was ~720 m ENE - round Punta Torrione on the east-facing coast, not in the bay at all."
     },
     "panarea_zimmari": {
-      "name": "Cala Zimmari",
+      "name": "Cala Zimmari / Baia Milazzese",
       "island": "Panarea",
       "lat": 38.6267,
       "lon": 15.0667,
@@ -111,29 +111,12 @@
         80,
         190
       ],
-      "shelter_note": "Open E and south. Anchor in 5-10 m on sand, good holding.",
+      "shelter_note": "Open E and south. Anchor in 5-10 m on sand, good holding. The pilot treats Baia Milazzese and Cala Zimmari as one anchorage and gives a single waypoint; the itinerary names both.",
       "verified": true,
       "group": "Panarea",
       "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
       "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
       "hazard_note": "The Punta Milazzese area is technically off limits - navigating and anchoring in the vicinity is prohibited, and you may be told to move on."
-    },
-    "panarea_milazzese": {
-      "name": "Baia Milazzese",
-      "island": "Panarea",
-      "lat": 38.6264,
-      "lon": 15.0664,
-      "type": "anchorage",
-      "exposed_sector": [
-        76,
-        225
-      ],
-      "shelter_note": "South-facing bay under the Bronze Age headland. Best shelter on Panarea in a northerly.",
-      "verified": false,
-      "group": "Panarea",
-      "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm",
-      "verification_note": "The pilot treats Baia Milazzese and Cala Zimmari together and gives one waypoint; this entry keeps its derived sector. A web cross-check agrees they are one piece of water - an Italian nautical guide puts Baia Milazzese at 38°37.62'N 015°04.12'E, 175 m from here, and lists Cala Junco separately 700 m SW. The 40 m gap between this entry and Cala Zimmari is real, not a coordinate slip."
     },
     "stromboli_gabbiano": {
       "name": "Marina del Gabbiano",
@@ -248,6 +231,15 @@
       "note": "71 m volcanic pinnacle rising from the sea off the NW coast.",
       "verified": false,
       "position_source": "OSM/Wikidata Q3820695 'La Canna' islet; was 38.583,14.527, 500 m E of it"
+    },
+    "panarea_lisca_nera": {
+      "name": "Lisca Nera",
+      "island": "Panarea",
+      "lat": 38.636403,
+      "lon": 15.108922,
+      "note": "Anchor in the channel between the islets of Bottaro and Lisca Nera, east of Panarea - shallow sand and clear water. Known for its sulfatare: volcanic gas bubbling up through the seabed, making a natural jacuzzi.",
+      "verified": true,
+      "position_source": "given by the fleet owner; 186 m off the nearest coast, 220 m SW of the Bottaro islet (OSM 38.6378,15.1107). Lisca Nera itself is not named in OSM - only Lisca Bianca, 400 m NE."
     }
   },
   "legs": [

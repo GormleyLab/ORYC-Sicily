@@ -105,9 +105,11 @@ the page says so.
 `Pilot-book.pdf` is a 13-page scan (Imray *Italian Waters Pilot*, Heikell,
 Isole Eolie pp.371-383) with no text layer - extract the page images with
 pypdf and read those. `scripts/apply_pilot.py` encodes its shelter statements
-and sets `verified: true` for the ten moorings it covers. Drautto, Baia
-Milazzese and Portorosa are not described there and keep their derived
-sectors.
+and sets `verified: true` for the ten moorings it covers. Drautto and
+Portorosa are not described there and were closed by the owner instead.
+Baia Milazzese was deleted: it was 40 m from Cala Zimmari and the pilot
+treats the two as one anchorage, so the planner was scoring the same water
+twice under two names. Cala Zimmari carries both names now.
 
 **The pilot overturned two derived sectors and one of my own worked
 examples.** Porto Pignataro is open SW, not east - the harbour mouth faces
