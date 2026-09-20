@@ -1,43 +1,73 @@
 /* ORYC Aeolian Flotilla - page renderer.
-   Fetches the three JSON files the pipeline publishes and renders everything.
-   No API calls from the browser: weather.json is pre-computed by the cron. */
+   Renders the three JSON files the pipeline publishes. The browser makes no
+   API calls: weather.json is pre-computed by the cron. */
 
 (function () {
   'use strict';
 
   const { esc, chip, windArrow, num, windyLink, dayLabel, hourLabel,
-          ago, verdictClass, compass } = ORYC;
+          ago, verdictClass, compass, shelterColor, nowIndex } = ORYC;
 
   const $ = id => document.getElementById(id);
-
   const state = { weather: null, itinerary: null, waypoints: null };
 
+  // --- theme ---------------------------------------------------------------
+  // Day / dark / night-vision. Night is red-on-black to protect dark
+  // adaptation - the fleet sails to Stromboli after dark.
+
+  function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem('oryc-theme'); } catch (e) {}
+    mark(saved);
+
+    document.querySelectorAll('[data-theme-set]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const want = btn.dataset.themeSet;
+        let current = document.documentElement.getAttribute('data-theme');
+        const next = current === want ? null : want;   // pressing again returns to system
+        if (next) document.documentElement.setAttribute('data-theme', next);
+        else document.documentElement.removeAttribute('data-theme');
+        try {
+          if (next) localStorage.setItem('oryc-theme', next);
+          else localStorage.removeItem('oryc-theme');
+        } catch (e) {}
+        mark(next);
+        if (window.ORYCCharts) ORYCCharts.refresh();
+      });
+    });
+  }
+
+  function mark(active) {
+    document.querySelectorAll('[data-theme-set]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.themeSet === active)));
+  }
+
   // --- boot ----------------------------------------------------------------
+
+  initTheme();
 
   Promise.all([
     fetchJson('data/weather.json'),
     fetchJson('data/itinerary.json'),
     fetchJson('data/waypoints.json'),
   ]).then(([weather, itinerary, waypoints]) => {
-    state.weather = weather;
-    state.itinerary = itinerary;
-    state.waypoints = waypoints;
+    Object.assign(state, { weather, itinerary, waypoints });
 
-    renderItinerary();   // static content first - always renders
+    renderItinerary();
     renderNotes();
 
     if (!weather) {
-      $('updated').innerHTML =
-        '<strong>Forecast data has not been published yet.</strong> ' +
-        'The itinerary below is complete; weather appears once the updater has run.';
-      ['briefing', 'passages', 'berths', 'map', 'charts'].forEach(id => {
-        const el = $(id); if (el) el.hidden = true;
-      });
+      $('status-line').innerHTML =
+        '<b>Forecast not published yet.</b> The itinerary below is complete; ' +
+        'weather appears once the updater has run.';
+      ['now', 'briefing', 'passages', 'berths', 'map', 'charts']
+        .forEach(id => { const el = $(id); if (el) el.hidden = true; });
       return;
     }
 
-    renderFreshness();
-    renderCountdown();
+    renderStatus();
+    renderPill();
+    renderNow();
     renderBriefing();
     renderLegs();
     renderBerths();
@@ -46,88 +76,149 @@
     if (window.ORYCCharts) ORYCCharts.init(weather);
   }).catch(err => {
     console.error(err);
-    $('updated').innerHTML =
-      '<strong>Could not load the site data.</strong> ' + esc(err.message);
+    $('status-line').innerHTML = '<b>Could not load site data.</b> ' + esc(err.message);
   });
 
   function fetchJson(path) {
-    return fetch(path, { cache: 'no-cache' }).then(r => {
-      if (!r.ok) {
-        if (path.endsWith('weather.json')) return null;  // not published yet
-        throw new Error(`${path}: HTTP ${r.status}`);
-      }
-      return r.json();
-    }).catch(e => {
-      if (path.endsWith('weather.json')) return null;
-      throw e;
-    });
+    return fetch(path, { cache: 'no-cache' })
+      .then(r => {
+        if (!r.ok) {
+          if (path.endsWith('weather.json')) return null;
+          throw new Error(`${path}: HTTP ${r.status}`);
+        }
+        return r.json();
+      })
+      .catch(e => { if (path.endsWith('weather.json')) return null; throw e; });
   }
 
-  // --- freshness -----------------------------------------------------------
+  // --- status --------------------------------------------------------------
 
-  function renderFreshness() {
+  function renderStatus() {
     const w = state.weather;
+    const live = w.stale ? 'warn' : '';
+    const okCount = (w.models || []).filter(m => m.ok).length;
 
-    $('updated').innerHTML =
-      `Forecast updated <b>${esc(ago(w.generated_at_utc || w.generated_at))}</b> ` +
-      `<span class="muted">(${esc(dayLabel(w.generated_at))} ${esc(hourLabel(w.generated_at))} local)</span>` +
-      (w.horizon_end ? ` · reaches <b>${esc(dayLabel(w.horizon_end))}</b>` : '');
+    $('status-line').innerHTML =
+      `<i class="live-dot ${live}" aria-hidden="true"></i>` +
+      `<span>Updated <b>${esc(ago(w.generated_at_utc || w.generated_at))}</b></span>` +
+      `<span>·</span><span><b>${okCount}</b> of ${(w.models || []).length} models</span>` +
+      (w.horizon_end ? `<span>·</span><span>reaches <b>${esc(dayLabel(w.horizon_end))}</b></span>` : '') +
+      `<button class="disclose" id="model-toggle" aria-expanded="false">model runs</button>`;
 
-    $('model-badges').innerHTML = (w.models || []).map(m => {
-      let cls = 'badge';
-      if (!m.ok) cls += ' dead';
-      else if (m.age_hours > (m.update_interval_hours || 12) * 2) cls += ' stale-model';
-      const init = m.ok ? `${esc(m.init_label)} · ${num(m.age_hours, 1)} h old`
-                        : 'unavailable';
-      const gusts = m.provides_gusts === false ? ' · no gusts' : '';
-      return `<span class="${cls}" title="${esc(m.note || '')}">` +
-             `<b>${esc(m.short)}</b> ${esc(m.resolution)} · ${init}${gusts}</span>`;
+    $('model-grid').innerHTML = (w.models || []).map(m => {
+      let cls = 'model-row';
+      if (!m.ok) cls += ' is-dead';
+      else if (m.age_hours > (m.update_interval_hours || 12) * 2) cls += ' is-stale';
+      return `<div class="${cls}" title="${esc(m.note || '')}">` +
+        `<span class="mid">${esc(m.short)}</span>` +
+        `<span class="muted">${esc(m.label)} · ${esc(m.resolution)}` +
+        `${m.provides_gusts === false ? ' · no gust field' : ''}</span>` +
+        `<span class="det">${m.ok ? esc(m.init_label) + ' · ' + num(m.age_hours, 1) + ' h' : 'unavailable'}</span>` +
+      `</div>`;
     }).join('');
 
-    const alerts = [];
+    const toggle = $('model-toggle'), panel = $('model-detail');
+    toggle.addEventListener('click', () => {
+      const open = panel.hidden;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+
+    // Notices, most urgent first.
+    const n = [];
     if (w.simulated) {
-      alerts.push(['danger', 'Preview mode — these are not the real trip dates',
-        `Itinerary dates have been shifted by ${w.simulated_shift_days} days into the ` +
-        `current forecast window so the passage planner can be demonstrated. ` +
-        `Do not plan against this page while this banner is showing.`]);
+      n.push(['danger', '◉', 'Preview mode — not the real trip dates',
+        `Itinerary dates are shifted ${w.simulated_shift_days} days into the current ` +
+        `forecast window to demonstrate the planner. Do not plan against this page.`]);
     }
     if (w.stale) {
-      alerts.push(['warn', 'This forecast is stale',
-        `The last update attempt failed, so the figures below are from an earlier ` +
-        `run. ${esc(w.stale_reason || '')}`]);
+      n.push(['warn', '▲', 'Forecast is stale',
+        `The last update failed, so these figures are from an earlier run. ${esc(w.stale_reason || '')}`]);
     }
-    if (w.briefing_error && !w.briefing) {
-      alerts.push(['warn', 'The written briefing is unavailable',
-        'All the numbers, passage calls and berth rankings below are unaffected — ' +
-        'only the prose summary is missing.']);
+    const unver = Object.values((state.waypoints || {}).moorings || {}).filter(m => !m.verified).length;
+    if (unver) {
+      n.push(['warn', '▲', `${unver} mooring positions not yet chart-verified`,
+        'Coordinates and exposure sectors came from the itinerary text, not a chart. ' +
+        'Shelter rankings depend on them — treat as indicative.']);
     }
-    const unverified = Object.values((state.waypoints || {}).moorings || {})
-      .filter(m => !m.verified).length;
-    if (unverified) {
-      alerts.push(['warn', `${unverified} mooring positions are not yet verified`,
-        'Coordinates and exposure sectors were derived from the itinerary text and ' +
-        'have not been checked against a chart. Shelter rankings depend on them, so ' +
-        'treat them as indicative until they are confirmed.']);
-    }
-
-    $('alerts').innerHTML = alerts.map(([kind, title, body]) =>
-      `<div class="alert alert-${kind}"><strong>${esc(title)}</strong>${body}</div>`
-    ).join('');
+    $('notices').innerHTML = n.map(([k, ico, title, body]) =>
+      `<div class="notice notice-${k}"><span class="ico" aria-hidden="true">${ico}</span>` +
+      `<span><b>${esc(title)}</b>${body}</span></div>`).join('');
   }
 
-  function renderCountdown() {
-    const w = state.weather, el = $('countdown');
+  function renderPill() {
+    const w = state.weather, el = $('pill-day');
     if (w.phase === 'underway' && w.trip_day) {
-      $('countdown-n').textContent = w.trip_day;
-      $('countdown-l').textContent = `of 8 days`;
+      $('pill-n').textContent = w.trip_day; $('pill-l').textContent = 'of 8';
     } else if (w.phase === 'pre-trip') {
-      $('countdown-n').textContent = w.days_to_departure;
-      $('countdown-l').textContent = w.days_to_departure === 1 ? 'day out' : 'days out';
+      $('pill-n').textContent = w.days_to_departure;
+      $('pill-l').textContent = w.days_to_departure === 1 ? 'day out' : 'days out';
     } else {
-      $('countdown-n').textContent = '⚓';
-      $('countdown-l').textContent = 'complete';
+      $('pill-n').textContent = '⚓'; $('pill-l').textContent = 'done';
     }
     el.hidden = false;
+  }
+
+  // --- conditions now ------------------------------------------------------
+  // Always has data, so the page carries real information even while every
+  // trip date is still beyond the forecast horizon.
+
+  function renderNow() {
+    const series = state.weather.series || {};
+    const moorings = (state.waypoints || {}).moorings || {};
+    const ids = Object.keys(series).filter(id => moorings[id]);
+    if (!ids.length) return;
+
+    const first = series[ids[0]];
+    const i = nowIndex(first.time);
+    if (i < 0) return;
+
+    $('now-time').textContent = `${dayLabel(first.time[i])} ${hourLabel(first.time[i])} local`;
+
+    // One card per island - a dozen near-identical cards for the same island
+    // would be noise. Values are the consensus across every model that has
+    // data, not one model's reading: at 2 km ICON-2i sometimes resolves a
+    // local acceleration the coarser models miss, and showing that alone as
+    // a bare headline figure would mislead.
+    const seen = new Set();
+    const cards = [];
+
+    ids.forEach(id => {
+      const group = moorings[id].group || moorings[id].island;
+      if (seen.has(group)) return;
+
+      const p = series[id];
+      const speeds = [], dirs = [];
+      Object.values(p.models).forEach(m => {
+        if (m.wind_speed_10m[i] != null) speeds.push(m.wind_speed_10m[i]);
+        if (m.wind_direction_10m[i] != null) dirs.push(m.wind_direction_10m[i]);
+      });
+      if (!speeds.length) return;
+      seen.add(group);
+
+      const mean = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+      const lo = Math.min(...speeds), hi = Math.max(...speeds);
+      const spread = hi - lo;
+      const dir = ORYC.circularMean(dirs);
+      const wave = p.sea && p.sea.series ? p.sea.series.wave_height[i] : null;
+
+      // A wide spread is information, not noise - say so rather than hiding it.
+      const disagree = spread > 8 && speeds.length > 1
+        ? `<div class="spread">models ${num(lo)}–${num(hi)} kt</div>` : '';
+
+      cards.push(
+        `<div class="now-card">` +
+          `<div class="pl">${esc(group)}</div>` +
+          `<div class="ws">${num(mean)}<small>kt</small></div>` +
+          `<div class="wd">${windArrow(dir, 12)} ${esc(compass(dir))}</div>` +
+          disagree +
+          (wave != null ? `<div class="sea">sea ${num(wave, 1)} m</div>` : '') +
+        `</div>`);
+    });
+
+    if (!cards.length) return;
+    $('now-body').innerHTML = cards.join('');
+    $('now').hidden = false;
   }
 
   // --- briefing ------------------------------------------------------------
@@ -137,208 +228,217 @@
     const body = $('briefing-body');
 
     if (!b) {
-      body.innerHTML =
-        `<div class="card"><p class="muted small" style="margin:0">` +
-        `No written briefing in this run. The passage calls, berth rankings and ` +
-        `charts below are computed directly from the model data and are unaffected.` +
-        `</p></div>`;
+      const w = state.weather;
+      const msg = w.phase === 'pre-trip'
+        ? `The written briefing begins once the trip dates come inside the forecast ` +
+          `horizon. Until then the numbers above and below are live and current.`
+        : `No written briefing in this run. Every passage call, berth ranking and chart ` +
+          `below is computed directly from the model data and is unaffected.`;
+      body.innerHTML = `<div class="card card-pad"><p class="muted small" style="margin:0">${msg}</p></div>`;
       return;
     }
 
-    const section = (title, text) => text
-      ? `<h4>${esc(title)}</h4><p>${esc(text)}</p>` : '';
-
+    const sec = (t, x) => x ? `<h4>${esc(t)}</h4><p>${esc(x)}</p>` : '';
     const notes = (b.passage_notes || []).length
-      ? `<h4>Passage notes</h4><ul class="cautions">` +
-        b.passage_notes.map(n =>
-          `<li><strong>${esc(n.leg)}</strong> — ${esc(n.note)}</li>`).join('') +
-        `</ul>`
-      : '';
-
+      ? `<h4>Passage notes</h4><ul>` + b.passage_notes.map(n =>
+          `<li><strong>${esc(n.leg)}</strong> — ${esc(n.note)}</li>`).join('') + `</ul>` : '';
     const cautions = (b.cautions || []).length
-      ? `<h4>Watch for</h4><ul class="cautions">` +
-        b.cautions.map(c => `<li>${esc(c)}</li>`).join('') + `</ul>`
-      : '';
-
-    const conf = b.confidence
-      ? `<span>Confidence: <strong>${esc(b.confidence)}</strong>` +
-        (b.confidence_note ? ` — ${esc(b.confidence_note)}` : '') + `</span>`
-      : '';
+      ? `<h4>Watch for</h4><ul>` + b.cautions.map(c => `<li>${esc(c)}</li>`).join('') + `</ul>` : '';
 
     body.innerHTML =
-      `<div class="card briefing">` +
+      `<div class="card card-pad briefing">` +
         `<div class="headline">${esc(b.headline)}</div>` +
-        section('Synopsis', b.synopsis) +
-        section('Overnight at the berth', b.overnight_anchorage) +
-        section('Tomorrow morning', b.tomorrow_morning) +
+        sec('Synopsis', b.synopsis) +
+        sec('Overnight at the berth', b.overnight_anchorage) +
+        sec('Tomorrow morning', b.tomorrow_morning) +
         notes + cautions +
-        `<div class="by">${conf}<span>Written by ${esc(b.model || 'Claude')} ` +
-        `from the model data on this page</span></div>` +
+        `<div class="by">` +
+          (b.confidence ? `<span>Confidence <strong>${esc(b.confidence)}</strong>` +
+            (b.confidence_note ? ` — ${esc(b.confidence_note)}` : '') + `</span>` : '') +
+          `<span>${esc(b.model || 'Claude')}, from the data on this page</span>` +
+        `</div>` +
       `</div>`;
   }
 
-  // --- passage planner -----------------------------------------------------
+  // --- passages ------------------------------------------------------------
 
   function renderLegs() {
-    const legs = state.weather.legs || [];
-    $('legs-body').innerHTML = legs.map(legCard).join('');
+    $('legs-body').innerHTML = (state.weather.legs || []).map(legCard).join('');
 
-    // Progressive disclosure: only the recommended row is shown until asked.
-    document.querySelectorAll('[data-expand]').forEach(btn => {
+    document.querySelectorAll('[data-hours]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const tbl = document.getElementById(btn.dataset.expand);
-        const open = tbl.dataset.open === '1';
-        tbl.dataset.open = open ? '0' : '1';
-        tbl.querySelectorAll('tr[data-extra]').forEach(tr => { tr.hidden = open; });
-        btn.textContent = open ? 'Show all departure windows'
-                               : 'Show only the recommended window';
+        const box = $(btn.dataset.hours);
+        const open = box.hidden;
+        box.hidden = !open;
+        btn.setAttribute('aria-expanded', String(open));
+        btn.textContent = open ? 'Hide hour-by-hour' : 'Hour-by-hour';
       });
     });
   }
 
   function legCard(leg) {
-    const optional = leg.optional ? ' is-optional' : '';
     const head =
       `<div class="leg-head">` +
-        `<h3>${esc(leg.label)}</h3>` +
+        `<h3>${esc(leg.label.replace(' (optional)', '').replace(' (optional return)', ''))}</h3>` +
         `<span class="when">${esc(dayLabel(leg.date))}</span>` +
         (leg.status === 'forecast' ? chip(leg.verdict) : '') +
       `</div>`;
 
-    const meta =
-      `<div class="leg-meta">` +
-        `<span>Bearing <b>${num(leg.bearing)}°T</b> ${esc(leg.bearing_label)} ${windArrow(leg.bearing + 180)}</span>` +
-        `<span>Distance <b>${num(leg.stated_nm)} nm</b></span>` +
-        `<span>Passage <b>${esc(leg.duration_label)}</b> at 6 kt</span>` +
-        (leg.arrive_by ? `<span>Arrive by <b>${esc(leg.arrive_by)}</b></span>` : '') +
-        windyLink(leg.midpoint.lat, leg.midpoint.lon, 'wind', 'Wind on this leg') +
+    const facts =
+      `<div class="facts">` +
+        `<div><div class="k">Course</div><div class="v">${windArrow(leg.bearing + 180, 12)}` +
+          `${num(leg.bearing)}°<span class="muted" style="font-weight:400">${esc(leg.bearing_label)}</span></div></div>` +
+        `<div><div class="k">Distance</div><div class="v">${num(leg.stated_nm)}<span class="muted" style="font-weight:400">nm</span></div></div>` +
+        `<div><div class="k">Passage</div><div class="v">${esc(leg.duration_label)}</div></div>` +
       `</div>`;
 
     if (leg.status !== 'forecast') {
-      return `<div class="card leg${optional}">${head}${meta}` +
-             `<div class="beyond">${esc(leg.message || 'Beyond the forecast horizon.')}</div></div>`;
-    }
-
-    const rank = { 'go': 0, 'caution': 1, 'no-go': 2, 'unknown': 3 };
-    const best = leg.windows.find(w => w.depart === leg.recommended_window);
-
-    let rec = '';
-    if (best) {
-      rec = `<div class="rec ${verdictClass(leg.verdict)}">` +
-        `Recommended departure <b>${esc(best.depart)}</b>, arriving about <b>${esc(best.arrive)}</b>` +
-        (leg.deteriorates_after
-          ? ` — conditions deteriorate for departures after <b>${esc(leg.deteriorates_after)}</b>.`
-          : '.') +
-        `<div class="small muted" style="margin-top:4px">${esc(best.reasons.join('; '))}</div>` +
+      const days = leg.available_in_days;
+      return `<div class="card leg${leg.optional ? ' is-optional' : ''}">${head}${facts}` +
+        `<div class="await">` +
+          `<div class="ring" aria-hidden="true">${days != null ? esc(String(days)) + 'd' : '–'}</div>` +
+          `<div class="txt">${esc(leg.message || 'Beyond the forecast horizon.')}` +
+          `<div class="muted" style="margin-top:3px">${esc(leg.note || '')}</div></div>` +
+        `</div>` +
+        `<div class="card-foot">${windyLink(leg.midpoint.lat, leg.midpoint.lon, 'wind', 'Wind on this leg')}</div>` +
       `</div>`;
     }
 
-    const tableId = `w-${leg.id.replace(/[^a-z0-9]/gi, '')}`;
+    const best = leg.windows.find(w => w.depart === leg.recommended_window) || leg.windows[0];
+    const cls = verdictClass(leg.verdict);
+
+    const callout = best ? `<div class="callout ${cls}">` +
+      `<div class="callout-top">` +
+        `<span class="callout-time">${esc(best.depart)}</span>` +
+        `<span class="callout-lab">recommended departure<br>arrive ${esc(best.arrive)}` +
+        `${best.arrive_next_day ? ' next day' : ''}</span>` +
+      `</div>` +
+      `<div class="keynums">` +
+        `<div><div class="k">Wind</div><div class="v">${num(best.max_wind_kt)}<small>kt</small></div></div>` +
+        `<div><div class="k">Gust</div><div class="v">${num(best.max_gust_kt)}<small>kt</small></div></div>` +
+        `<div><div class="k">Sea</div><div class="v">${best.max_wave_m == null ? '–' : num(best.max_wave_m, 1)}<small>m</small></div></div>` +
+        `<div><div class="k">From</div><div class="v">${windArrow(best.wind_dir, 13)}${esc(best.wind_dir_label)}</div></div>` +
+        `<div><div class="k">TWA</div><div class="v">${best.twa == null ? '–' : num(best.twa) + '°'}</div></div>` +
+        `<div><div class="k">Force</div><div class="v">${num(best.beaufort.force)}</div></div>` +
+        `<div class="pos"><div class="k">Point of sail</div><div class="v">${esc(best.point_of_sail)} · ${esc(best.reefing)}</div></div>` +
+      `</div>` +
+      `<div class="why">${esc(best.reasons.join('; '))}` +
+      (leg.deteriorates_after ? ` Deteriorates for departures after <strong>${esc(leg.deteriorates_after)}</strong>.` : '') +
+      `</div></div>` : '';
+
+    const boxId = `h-${leg.id.replace(/[^a-z0-9]/gi, '')}`;
+
+    // Stacked rows on phones; the same data as a table from 720px up. No
+    // horizontal scrolling of the primary content on a handheld.
     const rows = leg.windows.map(w => {
-      const isBest = w.depart === leg.recommended_window;
-      return `<tr${isBest ? ' class="best"' : ''}${isBest ? '' : ' data-extra hidden'}>` +
+      const b2 = w.depart === leg.recommended_window;
+      return `<div class="hour-row${b2 ? ' is-best' : ''}">` +
+        `<span class="t">${esc(w.depart)}</span>` +
+        `<span class="d">` +
+          `<span class="nw">${num(w.max_wind_kt)}–${num(w.max_gust_kt)} kt</span>` +
+          `<span class="nw">${windArrow(w.wind_dir, 11)} ${esc(w.wind_dir_label)}</span>` +
+          `<span class="nw">${w.max_wave_m == null ? '–' : num(w.max_wave_m, 1)} m</span>` +
+          `<span class="nw">${esc(w.point_of_sail)}</span>` +
+        `</span>` +
+        `${chip(w.verdict)}</div>`;
+    }).join('');
+
+    const tableRows = leg.windows.map(w => {
+      const b2 = w.depart === leg.recommended_window;
+      return `<tr${b2 ? ' class="is-best"' : ''}>` +
         `<td class="num">${esc(w.depart)}</td>` +
         `<td class="num muted">${esc(w.arrive)}${w.arrive_next_day ? '+1' : ''}</td>` +
         `<td class="num">${num(w.max_wind_kt)}</td>` +
         `<td class="num">${num(w.max_gust_kt)}</td>` +
-        `<td>${windArrow(w.wind_dir)} ${esc(w.wind_dir_label)}</td>` +
-        `<td class="num">${w.max_wave_m === null ? '–' : num(w.max_wave_m, 1)}</td>` +
-        `<td class="num">${w.twa === null ? '–' : num(w.twa) + '°'}</td>` +
+        `<td>${windArrow(w.wind_dir, 12)} ${esc(w.wind_dir_label)}</td>` +
+        `<td class="num">${w.max_wave_m == null ? '–' : num(w.max_wave_m, 1)}</td>` +
+        `<td class="num">${w.twa == null ? '–' : num(w.twa) + '°'}</td>` +
         `<td class="pos">${esc(w.point_of_sail)}</td>` +
-        `<td class="num muted">F${num(w.beaufort.force)}</td>` +
-        `<td>${chip(w.verdict)}</td>` +
-      `</tr>`;
+        `<td>${chip(w.verdict)}</td></tr>`;
     }).join('');
 
-    const table =
-      `<div class="table-scroll"><table class="windows" id="${tableId}" data-open="0">` +
-        `<thead><tr>` +
-          `<th>Depart</th><th>Arrive</th><th>Wind kt</th><th>Gust kt</th><th>From</th>` +
-          `<th>Wave m</th><th>TWA</th><th>Point of sail</th><th>Bft</th><th>Call</th>` +
-        `</tr></thead><tbody>${rows}</tbody>` +
-      `</table></div>` +
-      `<div style="padding:8px 18px 14px">` +
-        `<button class="more" data-expand="${tableId}">Show all departure windows</button>` +
-        (leg.distance_warning
-          ? `<div class="small" style="color:var(--caution);margin-top:6px">⚠ ${esc(leg.distance_warning)}</div>`
-          : '') +
-        (leg.note ? `<div class="small muted" style="margin-top:6px">${esc(leg.note)}</div>` : '') +
+    const hours =
+      `<div class="hours" id="${boxId}" hidden>` +
+        `<div class="only-phone">${rows}</div>` +
+        `<table class="hours-table only-wide"><thead><tr>` +
+          `<th>Depart</th><th>Arrive</th><th>Wind</th><th>Gust</th><th>From</th>` +
+          `<th>Sea m</th><th>TWA</th><th>Point of sail</th><th>Call</th>` +
+        `</tr></thead><tbody>${tableRows}</tbody></table>` +
       `</div>`;
 
-    return `<div class="card leg${optional}">${head}${meta}${rec}${table}</div>`;
+    return `<div class="card leg${leg.optional ? ' is-optional' : ''}">` +
+      head + facts + callout + hours +
+      `<div class="card-foot">` +
+        `<button class="disclose" data-hours="${boxId}" aria-expanded="false">Hour-by-hour</button>` +
+        windyLink(leg.midpoint.lat, leg.midpoint.lon, 'wind', 'Windy') +
+        (leg.arrive_by ? `<span>Arrive by <strong>${esc(leg.arrive_by)}</strong></span>` : '') +
+        (leg.distance_warning ? `<span style="color:var(--caution)">▲ ${esc(leg.distance_warning)}</span>` : '') +
+      `</div></div>`;
   }
 
   // --- berths --------------------------------------------------------------
 
   function renderBerths() {
-    const berths = (state.weather.berths || []).filter(b => b.options.length > 1
-      || b.status === 'forecast');
-    $('berths-body').innerHTML = berths.map(berthCard).join('');
+    const list = (state.weather.berths || [])
+      .filter(b => b.options.length > 1 || b.status === 'forecast');
+    $('berths-body').innerHTML = list.map(berthCard).join('');
   }
 
   function berthCard(b) {
     const head =
-      `<div class="berth-head">` +
+      `<div class="leg-head">` +
         `<h3>${esc(b.port)}</h3>` +
         `<span class="when">${esc(dayLabel(b.date))} night</span>` +
-        (b.optional ? `<span class="tag">optional</span>` : '') +
       `</div>`;
 
     if (b.status !== 'forecast') {
       const list = b.options.map(o =>
-        `<div class="option"><div class="option-head">` +
-          `<span class="option-name">${esc(o.name)}` +
-          (o.verified ? '' : ' <span class="unverified" title="Position and exposure sector not yet checked against a chart">unverified</span>') +
-          `</span></div>` +
-          `<div class="why">${esc(o.shelter_note)}</div>` +
-        `</div>`).join('');
-      return `<div class="card berth">${head}` +
-        `<p class="small muted" style="margin:0 0 10px">Beyond the forecast horizon — ` +
-        `the options and their exposure are shown for planning.</p>${list}</div>`;
+        `<div class="opt"><div class="opt-top"><span class="opt-name">${esc(o.name)}` +
+        (o.verified ? '' : `<span class="badge-unver">unverified</span>`) +
+        `</span></div><div class="why">${esc(o.shelter_note)}</div></div>`).join('');
+      return `<div class="card">${head}<div class="card-pad">` +
+        `<p class="small muted" style="margin:0 0 9px">Beyond the forecast horizon — ` +
+        `options and their exposure shown for planning.</p>${list}</div></div>`;
     }
 
     const sorted = b.options.slice().sort((x, y) => (y.score || 0) - (x.score || 0));
     const lead = b.choice_matters
-      ? `<p class="small" style="margin:0 0 10px"><strong>The choice matters tonight.</strong> ` +
-        `${esc(sorted[0].name)} is meaningfully better sheltered than the alternatives.</p>`
-      : `<p class="small muted" style="margin:0 0 10px">All options look comfortable tonight — ` +
-        `pick on convenience.</p>`;
+      ? `<p class="small" style="margin:0 0 9px"><strong>The choice matters tonight.</strong> ` +
+        `${esc(sorted[0].name)} is meaningfully better sheltered.</p>`
+      : `<p class="small muted" style="margin:0 0 9px">All options look comfortable — pick on convenience.</p>`;
 
     const list = sorted.map((o, i) => {
-      const pct = o.score === null ? 0 : Math.round(o.score * 100);
-      const color = ORYC.shelterColor(o.verdict);
+      const pct = o.score == null ? 0 : Math.round(o.score * 100);
       const sector = o.exposed_sector
-        ? `exposed ${num(o.exposed_sector[0])}–${num(o.exposed_sector[1])}°`
-        : 'enclosed';
-      return `<div class="option${i === 0 && b.choice_matters ? ' best' : ''}">` +
-        `<div class="option-head">` +
-          `<span class="option-name">${esc(o.name)}` +
-          (o.verified ? '' : ' <span class="unverified" title="Position and exposure sector not yet checked against a chart">unverified</span>') +
-          `</span>${chip(o.verdict)}` +
-        `</div>` +
+        ? `open ${num(o.exposed_sector[0])}–${num(o.exposed_sector[1])}°` : 'enclosed';
+      return `<div class="opt${i === 0 && b.choice_matters ? ' is-best' : ''}">` +
+        `<div class="opt-top"><span class="opt-name">${esc(o.name)}` +
+        (o.verified ? '' : `<span class="badge-unver">unverified</span>`) +
+        `</span>${chip(o.verdict)}</div>` +
         `<div class="why">${esc(o.reason)}</div>` +
         `<div class="nums">` +
-          `wind ${num(o.wind_kt)} kt ${windArrow(o.wind_dir)} ${esc(o.wind_dir_label || '')} · ` +
-          `gust ${num(o.gust_kt)} kt · swell ${num(o.swell_m, 1)} m ${esc(o.swell_dir_label || '')} · ${esc(sector)}` +
+          `<span>${windArrow(o.wind_dir, 11)} ${num(o.wind_kt)} kt ${esc(o.wind_dir_label || '')}</span>` +
+          `<span>gust ${num(o.gust_kt)}</span>` +
+          `<span>swell ${num(o.swell_m, 1)} m</span>` +
+          `<span>${esc(sector)}</span>` +
         `</div>` +
-        (o.no_anchoring ? `<div class="warn">⚠ Do not anchor here — rocky bottom. Buoys only.</div>` : '') +
-        `<div class="meter"><i style="width:${pct}%;background:${color}"></i></div>` +
-        `<div style="margin-top:7px">${windyLink(o.lat, o.lon, 'waves', 'Swell here')}</div>` +
+        (o.no_anchoring ? `<div class="warn">▲ Do not anchor — rocky. Buoys only.</div>` : '') +
+        `<div class="meter"><i style="width:${pct}%;background:${shelterColor(o.verdict)}"></i></div>` +
       `</div>`;
     }).join('');
 
-    return `<div class="card berth">${head}${lead}${list}</div>`;
+    return `<div class="card">${head}<div class="card-pad">${lead}${list}` +
+      `<div style="margin-top:10px">${windyLink(sorted[0].lat, sorted[0].lon, 'waves', 'Swell here')}</div>` +
+      `</div></div>`;
   }
 
   // --- itinerary -----------------------------------------------------------
 
   function renderItinerary() {
-    const it = state.itinerary;
-    $('itinerary-body').innerHTML = it.days.map(dayCard).join('');
-
+    $('itinerary-body').innerHTML = state.itinerary.days.map(dayCard).join('');
     document.querySelectorAll('[data-more]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const p = document.getElementById(btn.dataset.more);
+        const p = $(btn.dataset.more);
         const clipped = p.classList.toggle('clipped');
         btn.textContent = clipped ? 'Read more' : 'Read less';
       });
@@ -347,48 +447,46 @@
 
   function dayCard(d, i) {
     const pid = `prose-${i}`;
-    const long = (d.prose || '').length > 260;
+    const long = (d.prose || '').length > 230;
 
     const tags = []
       .concat((d.flags || []).map(f => `<span class="tag flag">${esc(f)}</span>`))
       .concat(d.dining ? [`<span class="tag dinner">${esc(d.dining.label)}</span>`] : [])
-      .concat((d.things_to_do || []).slice(0, 6).map(t => `<span class="tag">${esc(t)}</span>`))
+      .concat((d.things_to_do || []).slice(0, 5).map(t => `<span class="tag">${esc(t)}</span>`))
       .join('');
 
     const links = (d.links || []).map(l =>
-      `<a class="windy" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`
-    ).join(' ');
+      `<a class="windy" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join(' ');
 
-    const sailing = d.sailing
-      ? `<div class="small muted" style="margin-top:8px">` +
-        `⛵ ${num(d.sailing.distance_nm)} nm · ${esc(d.sailing.hours_at_6kt)} at 6 kt` +
-        (d.sailing.optional ? ' · optional' : '') + `</div>`
-      : '';
+    const sail = d.sailing
+      ? `<div class="sail-line">${num(d.sailing.distance_nm)} nm · ${esc(d.sailing.hours_at_6kt)} at 6 kt` +
+        (d.sailing.optional ? ' · optional' : '') + `</div>` : '';
 
     return `<div class="card day${d.optional ? ' is-optional' : ''}">` +
-      `<div class="day-num"><span class="n">${d.day}</span>` +
-      `<span class="d">${esc(d.weekday.slice(0, 3))} ${esc(dayLabel(d.date))}</span></div>` +
-      `<div>` +
-        `<h3>${esc(d.port)}${d.optional ? ' <span class="tag">optional</span>' : ''}</h3>` +
-        `<p class="headline">${esc(d.headline)}</p>` +
+      `<div class="day-head">` +
+        `<span class="daynum" aria-hidden="true">${d.day}</span>` +
+        `<h3>${esc(d.port)}</h3>` +
+        `<span class="when">${esc(dayLabel(d.date))}</span>` +
+      `</div>` +
+      `<div class="card-pad">` +
+        `<p class="lede">${esc(d.headline)}</p>` +
         `<p class="prose${long ? ' clipped' : ''}" id="${pid}">${esc(d.prose)}</p>` +
         (long ? `<button class="more" data-more="${pid}">Read more</button>` : '') +
-        sailing +
+        sail +
         (d.mooring_info ? `<div class="mooring-note"><strong>Mooring.</strong> ${esc(d.mooring_info)}</div>` : '') +
         (tags ? `<div class="tags">${tags}</div>` : '') +
         (links ? `<div class="tags">${links}</div>` : '') +
-      `</div>` +
-    `</div>`;
+      `</div></div>`;
   }
 
   function renderNotes() {
     const n = state.itinerary.trip.notes || {};
     $('notes-body').innerHTML =
-      `<h4 style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;` +
-      `color:var(--oryc-navy);margin:0 0 5px">Dining</h4>` +
-      `<p class="small" style="margin:0 0 14px">${esc(n.dining || '')}</p>` +
-      `<h4 style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;` +
-      `color:var(--oryc-navy);margin:0 0 5px">Moorings</h4>` +
+      `<h4 style="font-size:.64rem;letter-spacing:.11em;text-transform:uppercase;` +
+      `color:var(--ink-soft);margin:0 0 4px">Dining</h4>` +
+      `<p class="small" style="margin:0 0 13px">${esc(n.dining || '')}</p>` +
+      `<h4 style="font-size:.64rem;letter-spacing:.11em;text-transform:uppercase;` +
+      `color:var(--ink-soft);margin:0 0 4px">Moorings</h4>` +
       `<p class="small" style="margin:0">${esc(n.moorings || '')}</p>`;
   }
 

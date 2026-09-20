@@ -38,6 +38,18 @@ See `README.md` for the full architecture and setup checklist.
 * **The AI briefing is strictly additive.** If the Claude call fails or the key
   is missing, the run still succeeds and publishes every number. Nothing
   deterministic may ever depend on it.
+* **Mobile-first CSS.** Everything outside a media query is the phone layout;
+  `min-width` queries add desktop on top. The fleet reads this in a cockpit.
+  The hour-by-hour data is stacked rows on a phone and a table only from 720px
+  up - the primary content must never scroll sideways on a handheld.
+* **Three themes, including night vision.** Day, dark, and a red-on-black
+  "night" mode that preserves dark adaptation, because the fleet sails to the
+  Sciara del Fuoco after dark and a white phone screen costs you an hour of
+  night vision. Night mode is deliberately monochrome; charts separate their
+  lines by dash pattern rather than hue there.
+* **Type is Fraunces + IBM Plex Sans/Mono**, not the generic serif-on-cream
+  look. All figures are tabular mono. Palette is cool and blue-biased, not
+  warm cream.
 * **Structured output, not markdown**, from the Claude call — the page renders
   real elements from validated JSON, so no markdown parser ships to the browser.
 
@@ -74,6 +86,13 @@ the page says so.
 * **Marine model metadata lives on `marine-api.open-meteo.com`**, not the main
   host. The `host` key on each wave model handles this.
 * **`%-d` in strftime is not portable to Windows.** Use `fmt_date`.
+* **"Right now" cards show the multi-model mean, never one model.** At 2 km
+  ICON-2i sometimes resolves a local acceleration the coarser models miss - it
+  read 16.5 kt at Filicudi where IFS and AIFS both said ~6 kt. A bare headline
+  number from one model is misleading, so the cards average every available
+  model and print the range when the spread exceeds 8 kt.
+* **Wind arrows are inline SVG, not rotated text glyphs.** A rotated "↑" sat
+  off its baseline and read as a stray tick mark at small sizes.
 * **Point of sail must not say "no-go"** — it collided with the safety verdict
   and read as a contradiction on the same row. It says "head to wind — motor".
   There is a test asserting this.

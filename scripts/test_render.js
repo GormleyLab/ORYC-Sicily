@@ -59,6 +59,7 @@ const FILES = {
 const sandbox = {
   console,
   document,
+  localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
   window: {},
   getComputedStyle: () => ({ fontFamily: 'sans-serif' }),
   fetch: (p) => Promise.resolve({
@@ -119,11 +120,12 @@ setImmediate(() => {
     : '  (all legs beyond the forecast horizon — checking the pre-trip state)');
 
   const sections = {
-    'updated': ['Forecast updated'],
-    'model-badges': ['IFS', 'ICON-2i', 'MFWAM'],
-    'legs-body': ['Bearing', 'Distance',
-                  hasForecast ? 'Depart' : 'beyond the forecast horizon'],
-    'berths-body': hasBerths ? ['exposed', 'wind'] : ['Beyond the forecast horizon'],
+    'status-line': ['Updated', 'models'],
+    'model-grid': ['IFS', 'ICON-2i', 'MFWAM'],
+    'now-body': ['kt'],
+    'legs-body': ['Course', 'Distance',
+                  hasForecast ? 'recommended departure' : 'beyond the forecast horizon'],
+    'berths-body': hasBerths ? ['open ', 'swell'] : ['Beyond the forecast horizon'],
     'itinerary-body': ['Portorosa', 'Lipari', 'Stromboli', 'Salina', 'Filicudi'],
     'notes-body': ['Dining', 'Moorings'],
     'briefing-body': [],

@@ -1,6 +1,5 @@
-/* Shared display helpers. Kept deliberately small and dependency-free -
-   all the real sailing maths happens in scripts/sailing.py at build time, so
-   this file only formats what the pipeline already decided. */
+/* Shared display helpers. All the real sailing maths happens in
+   scripts/sailing.py at build time; this only formats what it decided. */
 
 const ORYC = (() => {
   'use strict';
@@ -9,23 +8,22 @@ const ORYC = (() => {
                    'S','SSW','SW','WSW','W','WNW','NW','NNW'];
 
   const VERDICT = {
-    'go':        { glyph: '●', label: 'Go',      cls: 'chip-go' },
-    'caution':   { glyph: '▲', label: 'Caution', cls: 'chip-caution' },
-    'no-go':     { glyph: '■', label: 'No-go',   cls: 'chip-nogo' },
-    'unknown':   { glyph: '—', label: 'No data', cls: 'chip-unknown' },
-    'sheltered': { glyph: '●', label: 'Sheltered', cls: 'chip-sheltered' },
-    'workable':  { glyph: '◐', label: 'Workable',  cls: 'chip-workable' },
-    'exposed':   { glyph: '▲', label: 'Exposed',   cls: 'chip-exposed' },
-    'untenable': { glyph: '■', label: 'Untenable', cls: 'chip-untenable' },
+    'go':        { g: '●', label: 'Go',        cls: 'chip-go' },
+    'caution':   { g: '▲', label: 'Caution',   cls: 'chip-caution' },
+    'no-go':     { g: '■', label: 'No-go',     cls: 'chip-nogo' },
+    'unknown':   { g: '·', label: 'No data',   cls: 'chip-unknown' },
+    'sheltered': { g: '●', label: 'Sheltered', cls: 'chip-sheltered' },
+    'workable':  { g: '◐', label: 'Workable',  cls: 'chip-workable' },
+    'exposed':   { g: '▲', label: 'Exposed',   cls: 'chip-exposed' },
+    'untenable': { g: '■', label: 'Untenable', cls: 'chip-untenable' },
   };
 
   const MODEL_COLOR = {
     ecmwf_ifs025: '#23408f',
     ecmwf_aifs025_single: '#d2232a',
-    italia_meteo_arpae_icon_2i: '#1f7a52',
+    italia_meteo_arpae_icon_2i: '#0f7a4f',
   };
 
-  /** Escape anything that reaches innerHTML. */
   function esc(s) {
     if (s === null || s === undefined) return '';
     return String(s).replace(/[&<>"']/g, c => (
@@ -38,56 +36,52 @@ const ORYC = (() => {
     return COMPASS[Math.round((deg % 360) / 22.5) % 16];
   }
 
-  /** Status chip. Always carries a glyph AND a word, never colour alone. */
+  /** Status chip - always a glyph AND a word, never colour alone. */
   function chip(verdict) {
     const v = VERDICT[verdict] || VERDICT.unknown;
-    return `<span class="chip ${v.cls}"><span class="glyph" aria-hidden="true">${v.glyph}</span>${v.label}</span>`;
+    return `<span class="chip ${v.cls}"><span class="g" aria-hidden="true">${v.g}</span>${v.label}</span>`;
   }
 
-  /** An arrow pointing the way the wind is blowing TO (meteorological dir is
-   *  where it comes FROM, so the glyph is rotated 180° from the reading). */
-  function windArrow(fromDeg, size) {
+  /** Wind arrow as inline SVG. A rotated text glyph sat off its baseline and
+   *  read as a stray tick mark at small sizes; this aligns predictably and
+   *  inherits currentColor in every theme. The arrow flies downwind, since
+   *  meteorological direction is where the wind comes FROM. */
+  function windArrow(fromDeg, px) {
     if (fromDeg === null || fromDeg === undefined) return '';
+    const s = px || 13;
     const rot = (fromDeg + 180) % 360;
-    return `<span class="arrow" style="transform:rotate(${rot}deg);font-size:${size || 1}em" aria-hidden="true">↑</span>`;
+    return `<span class="warr" style="width:${s}px;height:${s}px" aria-hidden="true">` +
+      `<svg viewBox="0 0 24 24" width="${s}" height="${s}" style="transform:rotate(${rot}deg)">` +
+      `<path d="M12 3 L12 21 M12 3 L7 9 M12 3 L17 9" fill="none" stroke="currentColor" ` +
+      `stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
   }
 
   function num(v, digits) {
-    if (v === null || v === undefined) return '–';
+    if (v === null || v === undefined || Number.isNaN(v)) return '–';
     return Number(v).toFixed(digits === undefined ? 0 : digits);
   }
 
-  /** Deep link into the Windy app, centred on a coordinate with one overlay.
-   *  Windy's URL scheme is undocumented; this is the long-standing
-   *  `?overlay,lat,lon,zoom` form. A link is all this is - no key, no embed. */
+  /** Deep link into Windy, centred on a coordinate with one overlay. The
+   *  `?overlay,lat,lon,zoom` form is Windy's long-standing scheme. No key,
+   *  no embed - just a link out to the app the fleet already uses. */
   function windyUrl(lat, lon, overlay, zoom) {
-    const o = overlay || 'wind';
-    const z = zoom || 9;
-    return `https://www.windy.com/?${o},${lat.toFixed(3)},${lon.toFixed(3)},${z}`;
+    return `https://www.windy.com/?${overlay || 'wind'},${lat.toFixed(3)},${lon.toFixed(3)},${zoom || 9}`;
   }
 
   function windyLink(lat, lon, overlay, label) {
     if (lat === undefined || lat === null) return '';
-    return `<a class="windy" href="${windyUrl(lat, lon, overlay)}" target="_blank" rel="noopener">${esc(label || 'Windy')} ↗</a>`;
+    return `<a class="windy" href="${windyUrl(lat, lon, overlay)}" target="_blank" ` +
+           `rel="noopener">${esc(label || 'Windy')} ↗</a>`;
   }
 
-  /** '2026-10-04T08:00' -> 'Sun 4 Oct' */
   function dayLabel(iso) {
     const d = new Date(iso.length <= 10 ? iso + 'T12:00' : iso);
     if (isNaN(d)) return iso;
-    return d.toLocaleDateString('en-GB',
-      { weekday: 'short', day: 'numeric', month: 'short' });
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   }
 
-  function hourLabel(iso) {
-    return iso.slice(11, 16);
-  }
+  function hourLabel(iso) { return iso.slice(11, 16); }
 
-  function dayHourLabel(iso) {
-    return `${dayLabel(iso)} ${hourLabel(iso)}`;
-  }
-
-  /** Relative age, e.g. '4 h ago'. */
   function ago(isoUtc) {
     const then = new Date(isoUtc);
     if (isNaN(then)) return '';
@@ -99,17 +93,41 @@ const ORYC = (() => {
     return `${Math.round(hrs / 24)} d ago`;
   }
 
-  /** Colour for a shelter verdict - used by the map markers. */
-  function shelterColor(verdict) {
-    return { sheltered: '#1f7a52', workable: '#a96908',
-             exposed: '#b4560c', untenable: '#d2232a' }[verdict] || '#6b7490';
+  function shelterColor(v) {
+    return { sheltered: 'var(--go)', workable: 'var(--caution)',
+             exposed: 'var(--caution)', untenable: 'var(--nogo)' }[v] || 'var(--none)';
   }
 
   function verdictClass(v) {
-    return { 'go': '', 'caution': 'amber', 'no-go': 'red' }[v] || '';
+    return { 'go': 'go', 'caution': 'caution', 'no-go': 'nogo' }[v] || '';
+  }
+
+  /** Vector mean of compass directions - a plain average is wrong near 360. */
+  function circularMean(dirs) {
+    const d = dirs.filter(v => v != null);
+    if (!d.length) return null;
+    let x = 0, y = 0;
+    d.forEach(v => { x += Math.cos(v * Math.PI / 180); y += Math.sin(v * Math.PI / 180); });
+    if (Math.abs(x) < 1e-9 && Math.abs(y) < 1e-9) return null;
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+
+  /** Index of the hour nearest to now within an array of local ISO stamps. */
+  function nowIndex(times) {
+    if (!times || !times.length) return -1;
+    const now = new Date();
+    // Times are local Italian time without an offset; compare on the wall
+    // clock in Europe/Rome so this is right wherever the reader is.
+    const rome = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Rome' }));
+    const stamp = `${rome.getFullYear()}-${String(rome.getMonth() + 1).padStart(2, '0')}-` +
+                  `${String(rome.getDate()).padStart(2, '0')}T${String(rome.getHours()).padStart(2, '0')}:00`;
+    const exact = times.indexOf(stamp);
+    if (exact >= 0) return exact;
+    for (let i = 0; i < times.length; i++) if (times[i] >= stamp) return i;
+    return -1;
   }
 
   return { esc, compass, chip, windArrow, num, windyUrl, windyLink,
-           dayLabel, hourLabel, dayHourLabel, ago, shelterColor, verdictClass,
+           dayLabel, hourLabel, ago, shelterColor, verdictClass, nowIndex, circularMean,
            MODEL_COLOR, VERDICT };
 })();

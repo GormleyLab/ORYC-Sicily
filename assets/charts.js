@@ -1,11 +1,12 @@
-/* Wind and sea timeseries. Every model is drawn as its own line rather than
-   averaged into one, because where the lines diverge is exactly the thing a
-   skipper needs to see. */
+/* Wind and sea timeseries. Every model is its own line rather than averaged
+   into one, because where the lines diverge is exactly what a skipper needs
+   to see. Colours are read from the live CSS variables so the charts follow
+   the day / dark / night-vision theme. */
 
 const ORYCCharts = (() => {
   'use strict';
 
-  const { esc, dayLabel, hourLabel, compass, MODEL_COLOR } = ORYC;
+  const { esc, dayLabel, hourLabel, compass, MODEL_COLOR, nowIndex } = ORYC;
 
   let weather = null, windChart = null, seaChart = null, current = null;
 
@@ -15,6 +16,24 @@ const ORYCCharts = (() => {
     italia_meteo_arpae_icon_2i: 'ICON-2i',
   };
 
+  const cssVar = n => getComputedStyle(document.documentElement)
+    .getPropertyValue(n).trim();
+
+  /** In night mode every hue collapses to red, so lines are separated by dash
+   *  pattern instead of colour - the chart still reads without any hue. */
+  function isNight() {
+    return document.documentElement.getAttribute('data-theme') === 'night';
+  }
+
+  function modelColor(mid, i) {
+    if (isNight()) return cssVar('--ink');
+    return MODEL_COLOR[mid] || cssVar('--ink-soft');
+  }
+
+  function modelDash(i) {
+    return isNight() ? [[], [6, 3], [2, 3]][i % 3] : [];
+  }
+
   function init(w) {
     if (!window.Chart) return;
     weather = w;
@@ -23,12 +42,12 @@ const ORYCCharts = (() => {
     const ids = Object.keys(series);
     if (!ids.length) { document.getElementById('charts').hidden = true; return; }
 
-    Chart.defaults.font.family =
+    Chart.defaults.font.family = cssVar('--sans') ||
       getComputedStyle(document.body).fontFamily;
     Chart.defaults.font.size = 11;
-    Chart.defaults.color = '#4a5875';
 
     const tabs = document.getElementById('chart-tabs');
+    const moorings = (window.__WAYPOINTS__ && window.__WAYPOINTS__.moorings) || {};
     tabs.innerHTML = ids.map(id =>
       `<button type="button" data-loc="${esc(id)}" aria-pressed="false">` +
       `${esc(series[id].name)}</button>`).join('');
@@ -38,16 +57,13 @@ const ORYCCharts = (() => {
       if (btn) select(btn.dataset.loc);
     });
 
-    // Open on the island the fleet is at today, falling back to the first.
     select(defaultLocation(ids));
   }
 
   function defaultLocation(ids) {
     const today = (weather.generated_at || '').slice(0, 10);
     const berth = (weather.berths || []).find(b => b.date >= today);
-    if (berth && berth.recommended && ids.includes(berth.recommended)) {
-      return berth.recommended;
-    }
+    if (berth && berth.recommended && ids.includes(berth.recommended)) return berth.recommended;
     return ids[0];
   }
 
@@ -60,6 +76,9 @@ const ORYCCharts = (() => {
     drawBarbs(id);
   }
 
+  /** Redraw in the current theme's colours. */
+  function refresh() { if (current) select(current); }
+
   function labels(times) {
     return times.map(t => {
       const h = hourLabel(t);
@@ -67,77 +86,100 @@ const ORYCCharts = (() => {
     });
   }
 
-  const baseOptions = (titleText, unit) => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { position: 'top', align: 'end',
-                labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, padding: 12 } },
-      title: { display: true, text: titleText, align: 'start',
-               font: { size: 12, weight: '600' }, color: '#14213f',
-               padding: { bottom: 10 } },
-      tooltip: {
-        backgroundColor: '#14213f', padding: 10, cornerRadius: 6,
-        titleFont: { size: 11 }, bodyFont: { size: 11 },
-        callbacks: {
-          label: c => `${c.dataset.label}: ${c.parsed.y === null ? '–' : c.parsed.y} ${unit}`,
+  function baseOptions(titleText, unit) {
+    const ink = cssVar('--ink'), soft = cssVar('--ink-soft'), hair = cssVar('--hair-soft');
+    Chart.defaults.color = cssVar('--ink-mid');
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', align: 'end',
+                  labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, padding: 10,
+                            color: cssVar('--ink-mid') } },
+        title: { display: true, text: titleText, align: 'start',
+                 font: { size: 12, weight: '600' }, color: ink, padding: { bottom: 8 } },
+        tooltip: {
+          backgroundColor: cssVar('--surface'), borderColor: cssVar('--hair'), borderWidth: 1,
+          titleColor: ink, bodyColor: cssVar('--ink-mid'),
+          padding: 9, cornerRadius: 6, displayColors: true,
+          titleFont: { size: 11 }, bodyFont: { size: 11 },
+          callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y == null ? '–' : c.parsed.y} ${unit}` },
         },
       },
-    },
-    scales: {
-      x: { grid: { display: false },
-           ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
-      y: { beginAtZero: true, grid: { color: '#ebe7de' },
-           title: { display: true, text: unit } },
-    },
-    elements: { point: { radius: 0, hitRadius: 12 }, line: { borderWidth: 2, tension: 0.3 } },
-  });
+      scales: {
+        x: { grid: { display: false }, border: { color: hair },
+             ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, color: soft } },
+        y: { beginAtZero: true, grid: { color: hair }, border: { display: false },
+             ticks: { color: soft },
+             title: { display: true, text: unit, color: soft } },
+      },
+      elements: { point: { radius: 0, hitRadius: 14 }, line: { borderWidth: 2, tension: .3 } },
+    };
+  }
+
+  /** A vertical marker at the current hour, so "now" is findable at a glance. */
+  function nowMarker(times) {
+    const i = nowIndex(times);
+    if (i < 0) return null;
+    return {
+      id: 'nowline',
+      afterDraw(chart) {
+        const x = chart.scales.x.getPixelForValue(i);
+        if (!isFinite(x)) return;
+        const { top, bottom } = chart.chartArea;
+        const c = chart.ctx;
+        c.save();
+        c.strokeStyle = cssVar('--accent');
+        c.lineWidth = 1.5;
+        c.setLineDash([3, 3]);
+        c.beginPath(); c.moveTo(x, top); c.lineTo(x, bottom); c.stroke();
+        c.restore();
+      },
+    };
+  }
 
   function drawWind(id) {
     const p = weather.series[id];
     const datasets = [];
 
-    Object.entries(p.models).forEach(([mid, s]) => {
+    Object.entries(p.models).forEach(([mid, s], i) => {
       datasets.push({
         label: MODEL_LABEL[mid] || mid,
         data: s.wind_speed_10m,
-        borderColor: MODEL_COLOR[mid] || '#6b7490',
+        borderColor: modelColor(mid, i),
+        borderDash: modelDash(i),
         backgroundColor: 'transparent',
         spanGaps: false,
       });
     });
 
-    // Gusts from the highest-resolution model that publishes them, drawn as a
-    // dashed envelope rather than a competing line.
     const gustSrc = p.models.italia_meteo_arpae_icon_2i || p.models.ecmwf_ifs025;
     if (gustSrc) {
       datasets.push({
         label: 'Gusts',
         data: gustSrc.wind_gusts_10m,
-        borderColor: '#a96908',
+        borderColor: cssVar('--caution'),
         borderDash: [4, 4],
-        backgroundColor: 'rgba(169,105,8,.06)',
-        fill: true,
+        backgroundColor: 'transparent',
         spanGaps: false,
       });
     }
 
-    // Reference lines at the thresholds the verdicts use.
     const threshold = (y, color) => ({
-      label: `${y} kt`,
-      data: p.time.map(() => y),
-      borderColor: color, borderWidth: 1, borderDash: [2, 4],
-      pointRadius: 0, fill: false,
+      label: `${y} kt`, data: p.time.map(() => y),
+      borderColor: color, borderWidth: 1, borderDash: [2, 5], pointRadius: 0, fill: false,
     });
-    datasets.push(threshold(18, 'rgba(169,105,8,.5)'));
-    datasets.push(threshold(25, 'rgba(210,35,42,.5)'));
+    datasets.push(threshold(18, cssVar('--caution-line')));
+    datasets.push(threshold(25, cssVar('--nogo-line')));
 
     if (windChart) windChart.destroy();
+    const marker = nowMarker(p.time);
     windChart = new Chart(document.getElementById('wind-chart'), {
       type: 'line',
       data: { labels: labels(p.time), datasets },
       options: baseOptions(`Wind at ${p.name}`, 'kt'),
+      plugins: marker ? [marker] : [],
     });
   }
 
@@ -148,53 +190,58 @@ const ORYCCharts = (() => {
     box.hidden = false;
 
     const s = p.sea.series;
+    const night = isNight();
     const datasets = [
       { label: 'Total wave', data: s.wave_height,
-        borderColor: '#23408f', backgroundColor: 'rgba(35,64,143,.08)', fill: true },
+        borderColor: night ? cssVar('--ink') : cssVar('--navy'),
+        backgroundColor: 'transparent', fill: false },
       { label: 'Swell', data: s.swell_wave_height,
-        borderColor: '#1f7a52', backgroundColor: 'transparent', borderDash: [5, 3] },
+        borderColor: night ? cssVar('--ink-mid') : cssVar('--go'),
+        backgroundColor: 'transparent', borderDash: [5, 3] },
       { label: '1.25 m', data: p.time.map(() => 1.25),
-        borderColor: 'rgba(169,105,8,.5)', borderWidth: 1, borderDash: [2, 4], pointRadius: 0 },
+        borderColor: cssVar('--caution-line'), borderWidth: 1, borderDash: [2, 5], pointRadius: 0 },
       { label: '2.0 m', data: p.time.map(() => 2.0),
-        borderColor: 'rgba(210,35,42,.5)', borderWidth: 1, borderDash: [2, 4], pointRadius: 0 },
+        borderColor: cssVar('--nogo-line'), borderWidth: 1, borderDash: [2, 5], pointRadius: 0 },
     ];
 
-    if (seaChart) seaChart.destroy();
-    const opts = baseOptions(
-      `Sea state near ${p.name} — Météo-France MFWAM`, 'm');
+    const opts = baseOptions(`Sea state near ${p.name} — Météo-France MFWAM`, 'm');
     opts.plugins.tooltip.callbacks.afterBody = items => {
       const i = items[0].dataIndex;
-      const dir = s.swell_wave_direction ? s.swell_wave_direction[i] : null;
-      const per = s.swell_wave_period ? s.swell_wave_period[i] : null;
       const out = [];
-      if (dir !== null && dir !== undefined) out.push(`Swell from ${compass(dir)} (${dir}°)`);
-      if (per !== null && per !== undefined) out.push(`Period ${per} s`);
+      const dir = s.swell_wave_direction && s.swell_wave_direction[i];
+      const per = s.swell_wave_period && s.swell_wave_period[i];
+      if (dir != null) out.push(`Swell from ${compass(dir)} (${dir}°)`);
+      if (per != null) out.push(`Period ${per} s`);
       return out;
     };
+
+    if (seaChart) seaChart.destroy();
+    const marker = nowMarker(p.time);
     seaChart = new Chart(document.getElementById('sea-chart'), {
       type: 'line', data: { labels: labels(p.time), datasets }, options: opts,
+      plugins: marker ? [marker] : [],
     });
   }
 
-  /** A thin row of direction arrows under the wind chart - direction is hard
-   *  to read off a line chart and it drives the whole shelter question. */
+  /** Direction arrows under the wind chart - direction drives the whole
+   *  shelter question and is hard to read off a line chart. */
   function drawBarbs(id) {
     const p = weather.series[id];
     const src = p.models.italia_meteo_arpae_icon_2i || p.models.ecmwf_ifs025
              || Object.values(p.models)[0];
     if (!src) return;
 
-    const step = Math.max(1, Math.round(p.time.length / 24));
+    const step = Math.max(1, Math.round(p.time.length / 18));
     const out = [];
     for (let i = 0; i < p.time.length; i += step) {
       const d = src.wind_direction_10m[i];
-      out.push(d === null || d === undefined
+      out.push(d == null
         ? '<span>·</span>'
         : `<span title="${esc(dayLabel(p.time[i]))} ${esc(hourLabel(p.time[i]))} — from ${compass(d)}">` +
-          `<span style="display:inline-block;transform:rotate(${(d + 180) % 360}deg)">↑</span></span>`);
+          ORYC.windArrow(d, 11) + `</span>`);
     }
     document.getElementById('wind-barbs').innerHTML = out.join('');
   }
 
-  return { init };
+  return { init, refresh };
 })();

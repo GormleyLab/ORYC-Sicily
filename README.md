@@ -19,6 +19,16 @@ a marine weather briefing that rebuilds itself on a schedule.
 | **Skipper's briefing** | Claude writes the prose briefing from the numbers above — synopsis, overnight conditions, next-morning outlook — in the style of the captain's original Gemini prompt. |
 | **Stromboli panel** | Links to the Smithsonian GVP and INGV bulletins for the Monday-night option and the Sciara del Fuoco night sail. |
 
+It is **mobile-first** — the phone layout is the default and desktop is layered
+on top, because this gets read one-handed in a cockpit. The hour-by-hour figures
+stack into rows on a phone and become a table only on wider screens, so the
+primary content never scrolls sideways.
+
+There are **three themes**: day, dark, and a red-on-black **night-vision** mode
+that protects dark adaptation — useful on the Sciara del Fuoco night sail, where
+a white screen costs you an hour of night vision. The choice is remembered per
+device.
+
 Everything is designed to print: `@media print` renders the briefing, passage
 table and berth recommendations cleanly, for a paper copy before you leave wifi.
 
