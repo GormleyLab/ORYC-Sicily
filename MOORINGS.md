@@ -20,11 +20,11 @@ Read `CLAUDE.md` § *Safety-critical data* first if you have not already.
   "type": "buoy",
   "exposed_sector": [97, 227],
   "shelter_note": "Nautilus buoy field in Baia di Drautto…",
-  "verified": false,
+  "verified": true,
   "group": "Panarea",
-  "position_source": "Campo Boe Nautilus… 38°37.73'N 015°04.20'E",
-  "sector_source": "derived from OSM coastline, rays to 5 nm",
-  "verification_note": "Not described separately in the Isole Eolie chapter…",
+  "position_source": "confirmed by the fleet owner…",
+  "sector_source": "Ray-cast from OSM coastline to 5 nm, then confirmed by the owner…",
+  "verification_note": "Verified by the fleet owner, not by the pilot book…",
   "hazard_note": "An old groyne runs about 100 m SE from the ferry mole…",
   "no_anchoring": true
 }
@@ -38,7 +38,7 @@ Read `CLAUDE.md` § *Safety-critical data* first if you have not already.
 | `type` | yes | `marina`, `harbour`, `dock`, `anchorage` or `buoy`. Carried into `weather.json`; nothing renders it yet, but the run raises `KeyError` without it |
 | `exposed_sector` | yes | The arc(s) the berth is open to. `null` means enclosed |
 | `shelter_note` | yes | One or two sentences the berth card prints verbatim |
-| `verified` | yes | `true` only after a chart or pilot-book check by a human |
+| `verified` | yes | `true` only once the pilot book or the fleet owner has closed the sector |
 | `group` | no | Which "right now" card this berth belongs to; falls back to `island` |
 | `position_source` | no | Where the coordinate came from |
 | `sector_source` | **if `verified`** | What verified the sector. A test enforces this |

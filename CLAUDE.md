@@ -25,12 +25,16 @@ over a good one: it blanks the Skipper's briefing on the live site until the
 next cron. Prefer `gh workflow run update-weather.yml`, which uses the secret
 and lands a complete run.
 
-**Safety-critical open task:** ten of the thirteen moorings in
-`data/waypoints.json` are `"verified": true` against the Imray pilot. The other
-three - Portorosa, Drautto and Baia Milazzese - are outside the Isole Eolie
-chapter. Their positions have since been cross-checked against OpenStreetMap
-and published harbour data, but their exposure sectors are still ray-cast
-geometry, so the flag stays false. See "Safety-critical data" below.
+**All twelve moorings in `data/waypoints.json` are `"verified": true`** - ten
+from the Imray pilot chapter, and Drautto and Portorosa from the fleet owner,
+who sails them. Baia Milazzese was deleted as a duplicate of Cala Zimmari.
+Two authorities may close an exposure sector and nothing else; `MOORINGS.md`
+has the rule and two tests enforce it.
+
+Verified is not the same as right. **One caveat is on the record and open:** at
+Drautto, 200 m further offshore the arc widens from 97-227 to 76-243, so a boat
+on an outer buoy may be less sheltered than the stored figure. See
+"Safety-critical data" below.
 
 ## Project summary
 

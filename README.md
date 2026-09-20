@@ -171,7 +171,7 @@ land**, which made their forecasts and shelter scores meaningless.
 
 ## Pilot book verification
 
-Ten of the thirteen moorings are now checked against Imray's *Italian Waters
+Ten of the twelve moorings are checked against Imray's *Italian Waters
 Pilot* (Heikell), Isole Eolie chapter, via `scripts/apply_pilot.py`. Where the
 pilot states a shelter direction it wins over the geometry, and the entry
 carries its prose, any hazard it flags, and `verified: true`.
@@ -182,8 +182,10 @@ basin gives good all-round shelter**, with strong southerlies the concern. That
 reverses the Salina example: Rinella is the berth open E–S, and Santa Marina is
 the refuge in an easterly.
 
-Drautto, Baia Milazzese and Portorosa are not described in that chapter and
-keep their derived sectors with `verified: false`.
+Drautto and Portorosa are not described in that chapter; both were closed by
+the fleet owner instead, who is the second of the two authorities allowed to
+settle a sector. Baia Milazzese was deleted as a duplicate of Cala Zimmari —
+40 m apart, one anchorage in the pilot, two entries here.
 
 ## Before the fleet relies on this
 
