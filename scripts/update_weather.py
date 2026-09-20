@@ -497,7 +497,7 @@ def build(no_briefing: bool = False) -> dict:
     if not no_briefing:
         try:
             import briefing
-            doc["briefing"] = briefing.generate(doc, itinerary)
+            doc["briefing"] = briefing.generate(doc, itinerary, waypoints)
         except Exception as e:  # never let the AI step break the numbers
             doc["briefing"] = None
             doc["briefing_error"] = f"{type(e).__name__}: {e}"

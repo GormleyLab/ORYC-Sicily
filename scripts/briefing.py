@@ -21,6 +21,8 @@ import datetime as dt
 import json
 import os
 
+import sailing as s
+
 MODEL = "claude-opus-5"
 
 BRIEFING_SCHEMA = {
@@ -155,7 +157,65 @@ def _trim_berth(b: dict) -> dict:
     return out
 
 
-def build_payload(doc: dict, itinerary: dict) -> dict:
+def _conditions(doc: dict, waypoints: dict, hours: int = 72, step: int = 6) -> list:
+    """Current and near-term conditions per island, from the hourly series.
+
+    Without this the pre-trip payload carries nothing but model metadata, and
+    the briefing correctly refuses to describe a synoptic picture it cannot
+    see. The series data is live every day, long before any trip date comes
+    inside the forecast horizon.
+    """
+    series = doc.get("series") or {}
+    moorings = (waypoints or {}).get("moorings") or {}
+    seen, out = set(), []
+
+    for pid, point in series.items():
+        m = moorings.get(pid)
+        if not m:
+            continue
+        group = m.get("group") or m.get("island")
+        if group in seen:
+            continue
+        seen.add(group)
+
+        times = point.get("time") or []
+        rows = []
+        for i in range(0, min(hours, len(times)), step):
+            speeds, dirs, gusts = [], [], []
+            for mdl in (point.get("models") or {}).values():
+                v = (mdl.get("wind_speed_10m") or [None] * len(times))[i]
+                d = (mdl.get("wind_direction_10m") or [None] * len(times))[i]
+                g = (mdl.get("wind_gusts_10m") or [None] * len(times))[i]
+                if v is not None: speeds.append(v)
+                if d is not None: dirs.append(d)
+                if g is not None: gusts.append(g)
+            if not speeds:
+                continue
+            row = {
+                "time": times[i],
+                "wind_kt": round(sum(speeds) / len(speeds), 1),
+                "wind_dir": None if not dirs else round(s.circular_mean(dirs)),
+            }
+            if len(speeds) > 1:
+                spread = round(max(speeds) - min(speeds), 1)
+                if spread > 6:
+                    row["models_range_kt"] = [round(min(speeds), 1), round(max(speeds), 1)]
+            if gusts:
+                row["gust_kt"] = round(max(gusts), 1)
+            sea = point.get("sea") or {}
+            ser = sea.get("series") or {}
+            for key, label in (("wave_height", "wave_m"), ("swell_wave_height", "swell_m")):
+                vals = ser.get(key) or []
+                if i < len(vals) and vals[i] is not None:
+                    row[label] = vals[i]
+            rows.append(row)
+
+        if rows:
+            out.append({"island": group, "hourly": rows})
+    return out
+
+
+def build_payload(doc: dict, itinerary: dict, waypoints: dict | None = None) -> dict:
     """The facts Claude is allowed to write about."""
     today = dt.date.fromisoformat(doc["generated_at"][:10])
 
@@ -187,10 +247,16 @@ def build_payload(doc: dict, itinerary: dict) -> dict:
         ],
         "legs": legs[:8],
         "berths": berths[:8],
+        "current_conditions": _conditions(doc, waypoints),
+        "current_conditions_note":
+            "Consensus across every model with data at that hour, sampled every "
+            "6 h. 'models_range_kt' appears only where the models disagree by "
+            "more than 6 kt, and means exactly that - say so rather than "
+            "quoting the mean as if it were certain.",
     }
 
 
-def generate(doc: dict, itinerary: dict) -> dict | None:
+def generate(doc: dict, itinerary: dict, waypoints: dict | None = None) -> dict | None:
     """Ask Claude for the briefing. Returns None if no API key is configured."""
     if not (os.environ.get("ANTHROPIC_API_KEY")
             or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
@@ -198,7 +264,7 @@ def generate(doc: dict, itinerary: dict) -> dict | None:
 
     import anthropic
 
-    payload = build_payload(doc, itinerary)
+    payload = build_payload(doc, itinerary, waypoints)
 
     if doc["phase"] == "pre-trip" and not doc.get("simulated"):
         framing = (
