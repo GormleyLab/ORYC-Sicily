@@ -2,18 +2,23 @@
 
 ## Current state
 
-**Deployed and live at https://gormleylab.github.io/ORYC-Sicily/** - the
+**Deployed and live at https://sicily-flotilla.com/** - the
 pipeline fetches five models, derives passage and berth guidance, the Action
 commits `data/weather.json`, and Pages serves it. Setup is finished: the repo
 is public, Pages is enabled and built from `main` / root, and
 `ANTHROPIC_API_KEY` is set as a repo secret (added 2026-09-20 02:07Z). Every
-`github-actions[bot]` weather commit carries a briefing.
+`github-actions[bot]` weather commit carries a briefing. The custom domain was
+added 2026-09-20: DNS is at Hover (four `@` A records to GitHub's Pages IPs,
+`www` CNAME to `gormleylab.github.io`), the `CNAME` file in the repo root is
+what tells Pages about it, and HTTPS is enforced. The old
+`gormleylab.github.io/ORYC-Sicily/` URL 301s to the new one, so links already
+sent to the fleet keep working. Do not delete `CNAME` - that drops the domain.
 
 Don't guess at any of that - `gh` is installed and authenticated, so ask:
 
 ```bash
 gh repo view GormleyLab/ORYC-Sicily --json visibility
-gh api repos/GormleyLab/ORYC-Sicily/pages --jq '{status,branch:.source.branch}'
+gh api repos/GormleyLab/ORYC-Sicily/pages --jq '{status,cname,https_enforced,branch:.source.branch}'
 gh secret list --repo GormleyLab/ORYC-Sicily
 gh workflow run update-weather.yml        # regenerate on demand
 ```

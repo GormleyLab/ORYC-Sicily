@@ -4,7 +4,8 @@ A single-page site for the Ocean Reef Yacht Club flotilla in the Aeolian Islands
 **3–10 October 2026**. It carries the eight-day itinerary and, more importantly,
 a marine weather briefing that rebuilds itself on a schedule.
 
-**Live site:** https://gormleylab.github.io/ORYC-Sicily/
+**Live site:** https://sicily-flotilla.com/ (the old
+https://gormleylab.github.io/ORYC-Sicily/ link redirects there)
 
 ---
 
@@ -156,12 +157,15 @@ horizon, so a normal run legitimately reports `legs with forecast: 0/7`. Use
 - [x] **Settings → Pages → Deploy from branch → `main` / root**
 - [x] **Settings → Secrets → Actions →** add `ANTHROPIC_API_KEY`
 - [x] Run *Actions → Update weather → Run workflow* once to seed the data
+- [x] **Custom domain** — `sicily-flotilla.com` at Hover: four `@` A records to
+      GitHub's Pages IPs (185.199.108-111.153), `www` CNAME to
+      `gormleylab.github.io`; `CNAME` file in the repo root; HTTPS enforced
 - [ ] **Verify the waypoints** — see below, and `MOORINGS.md`
 
-Setup is done; the site is live at <https://gormleylab.github.io/ORYC-Sicily/>.
+Setup is done; the site is live at <https://sicily-flotilla.com/>.
 Verified with `gh`, not assumed — visibility PUBLIC, Pages `built` from `main` /
-root, the secret present since 2026-09-20 02:07Z, and bot weather commits
-carrying a briefing. Re-check with `gh repo view`, `gh api .../pages` and
+root with `cname` set and `https_enforced` true, the secret present since
+2026-09-20 02:07Z, and bot weather commits carrying a briefing. Re-check with `gh repo view`, `gh api .../pages` and
 `gh secret list` rather than trusting this list.
 
 ## Deriving the waypoints
