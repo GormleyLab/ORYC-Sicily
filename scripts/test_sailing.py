@@ -198,6 +198,32 @@ def test_crew_facing_notes_lead_with_feet():
                 f"of it - the fleet reads feet: {text!r}")
 
 
+def test_static_page_prose_leads_with_feet():
+    """index.html carries hand-written prose too - the Stromboli panel names a
+    distance - and it is easy to forget because it is not in the JSON. It hid
+    once behind `600&nbsp;m`, which a plain "digits space m" search misses, so
+    normalise the entity before looking.
+    """
+    import re
+    html = (pathlib.Path(__file__).resolve().parent.parent / "index.html").read_text(
+        encoding="utf-8")
+    # Script and style bodies are not prose; base64 integrity hashes in them
+    # trip any loose unit pattern.
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", html).replace("&nbsp;", " ")
+
+    metric = re.compile(r"[0-9][0-9.,]*\s?(?:-[0-9.,]+)?\s?m[+]?\b")
+    feet_then_metric = re.compile(
+        r"[0-9][0-9.,]*\s?(?:-[0-9.,]+)?\s?ft[+]?\s*"
+        r"[(][^)]*m[+]?[)]")
+    for hit in metric.finditer(text):
+        covered = any(mm.start() <= hit.start() and hit.end() <= mm.end()
+                      for mm in feet_then_metric.finditer(text))
+        assert covered, (
+            f"index.html states {hit.group(0)!r} with no feet figure in front of "
+            f"it: ...{text[max(0, hit.start() - 70):hit.end() + 30].strip()}...")
+
+
 def test_wave_prose_is_feet_not_metres():
     """The fleet is American and the page shows feet. Thresholds and arguments
     stay metric - only the prose converts - so a regression here reads as a

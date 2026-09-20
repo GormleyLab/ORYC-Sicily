@@ -60,8 +60,17 @@ function makeLeafletStub() {
   };
 }
 
+/* Keeps the last config built for each canvas. The threshold lines are the
+   part worth inspecting: they encode the go/caution limits, and a rounding
+   slip there moves a safety line without changing anything visible. */
+const chartConfigs = {};
 function makeChartStub() {
-  function Chart() { calls.charts++; this.destroy = () => {}; }
+  function Chart(canvas, config) {
+    calls.charts++;
+    const id = canvas && canvas.id ? canvas.id : `chart-${calls.charts}`;
+    chartConfigs[id] = config;
+    this.destroy = () => {};
+  }
   Chart.defaults = { font: {}, color: '' };
   return Chart;
 }
@@ -303,6 +312,34 @@ setImmediate(() => {
       fail('#legs-body hour table header does not say "Sea ft"');
     }
   }
+  /** Assert the sea chart's two threshold datasets are plotted at `value` and
+   *  carry `label`, in whichever unit is active. */
+  function checkThresholds(unit, expected) {
+    const cfg = chartConfigs['sea-chart'];
+    if (!cfg) { fail('no sea-chart config was captured'); return; }
+    const lines = cfg.data.datasets.filter(d => d.pointRadius === 0);
+    if (lines.length !== expected.length) {
+      fail(`sea chart has ${lines.length} threshold lines, expected ${expected.length}`);
+      return;
+    }
+    let bad = 0;
+    lines.forEach((d, i) => {
+      const [value, label] = expected[i];
+      const plotted = d.data[0];
+      if (Math.abs(plotted - value) > 0.001) {
+        bad++;
+        fail(`sea chart ${unit} threshold "${d.label}" is plotted at ${plotted}, ` +
+             `expected ${value.toFixed(3)} — a safety line in the wrong place`);
+      }
+      if (d.label !== label) {
+        bad++;
+        fail(`sea chart threshold labelled "${d.label}", expected "${label}"`);
+      }
+    });
+    if (!bad) ok(`sea chart thresholds correct in ${unit} ` +
+                 `(${lines.map(d => d.label).join(', ')})`);
+  }
+
   // --- the ft / m toggle ---------------------------------------------------
   // Switching units is a full re-render driven from `state`, so the risk is
   // not the arithmetic - it is a section that never re-runs, or one that does
@@ -345,6 +382,12 @@ setImmediate(() => {
     if (html('now-body').includes(' ft')) {
       fail('#now-body still shows a ft figure after the switch to metres');
     }
+    // The threshold lines carry the go/caution limits from sailing.py. They
+    // must sit at the EXACT converted value - rounding the plotted number once
+    // moved the 1.25 m caution line to 1.3 m - and be labelled with the real
+    // constant, not a round-trip of it.
+    checkThresholds('m', [[1.25, '1.25 m'], [2.0, '2.0 m']]);
+
     if (!html('status-line').includes('written notes quote feet')) {
       fail('#status-line does not warn that the prose stays in feet while the ' +
            'numbers are in metres');
@@ -371,6 +414,8 @@ setImmediate(() => {
     if (html('status-line').includes('written notes quote feet')) {
       fail('#status-line still shows the metres caveat after switching back to feet');
     }
+    checkThresholds('ft', [[1.25 * 3.28084, '4.1 ft'], [2.0 * 3.28084, '6.6 ft']]);
+
     const drifted = Object.keys(feetHtml).filter(id => html(id) !== feetHtml[id]);
     if (drifted.length) {
       fail(`switching to metres and back changed ${drifted.join(', ')} — ` +

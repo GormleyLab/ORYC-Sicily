@@ -15,8 +15,23 @@ const ORYCCharts = (() => {
    *  Called at draw time, never cached - `refresh()` redraws on a switch. */
   const conv = m => {
     const v = ORYC.toDisplay(m);
-    return v == null ? null : Math.round(v * 10) / 10;
+    if (v == null) return null;
+    // One decimal in feet, two in metres - weather.json stores metres to two,
+    // and rounding a 0.22 m sea to 0.2 throws away resolution the model has.
+    const f = ORYC.units() === 'm' ? 100 : 10;
+    return Math.round(v * f) / f;
   };
+
+  /** The go/caution thresholds, in metres, matching sailing.py. */
+  const WAVE_GO_M = 1.25, WAVE_CAUTION_M = 2.0;
+
+  /** A threshold line is plotted at its EXACT converted value: rounding the
+   *  plotted number moved the 1.25 m caution line to 1.3 m. Only the label is
+   *  formatted, and in metres it prints the constant itself rather than a
+   *  round-trip of it - "1.25 m", not "1.3 m". */
+  const threshLabel = m => (ORYC.units() === 'm'
+    ? `${m.toFixed(2).replace(/0$/, '')} m`
+    : `${conv(m)} ft`);
 
   let weather = null, windChart = null, seaChart = null, current = null;
 
@@ -251,9 +266,9 @@ const ORYCCharts = (() => {
       { label: 'Swell', data: (s.swell_wave_height || []).map(conv),
         borderColor: night ? cssVar('--ink-mid') : cssVar('--go'),
         backgroundColor: 'transparent', borderDash: [5, 3] },
-      { label: `${conv(1.25)} ${unit}`, data: p.time.map(() => conv(1.25)),
+      { label: threshLabel(WAVE_GO_M), data: p.time.map(() => ORYC.toDisplay(WAVE_GO_M)),
         borderColor: cssVar('--caution-line'), borderWidth: 1, borderDash: [2, 5], pointRadius: 0 },
-      { label: `${conv(2.0)} ${unit}`, data: p.time.map(() => conv(2.0)),
+      { label: threshLabel(WAVE_CAUTION_M), data: p.time.map(() => ORYC.toDisplay(WAVE_CAUTION_M)),
         borderColor: cssVar('--nogo-line'), borderWidth: 1, borderDash: [2, 5], pointRadius: 0 },
     ];
 
