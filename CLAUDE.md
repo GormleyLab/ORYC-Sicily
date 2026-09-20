@@ -69,6 +69,35 @@ The same applies to the go/caution/no-go thresholds in `sailing.py` — they are
 conservative defaults for 45ft cats, meant to be tuned by the fleet captain, and
 the page says so.
 
+## Waypoint tools
+
+Two scripts derive the safety-critical waypoint data from OpenStreetMap
+instead of guessing it. Both report by default and only change anything with
+`--write`. They cache the OSM extract in `scripts/_*.json` (gitignored).
+
+```bash
+python scripts/fix_positions.py     # anchor to OSM harbours, snap into water
+python scripts/derive_sectors.py    # ray-cast the exposure sectors
+```
+
+`fix_positions.py` found that four of the original thirteen coordinates were
+**on dry land** - Porto Pignataro, San Pietro, Marina del Gabbiano and Filicudi
+Porto - which made their forecasts and shelter scores meaningless. Two
+independent tests agreed: ray-casting reported "0 degrees open" (the signature
+of being inside a coastline ring) and a crossing-parity test said inside.
+
+`derive_sectors.py` casts a ray every degree out to 5 nm against coastline,
+breakwaters and piers, and keeps every open arc. It is a much better first
+pass than a guess, but it is still **not** a chart check: it cannot see swell
+refraction, depth, holding ground, or a low spit that stops swell but not
+wind. `verified` stays false until a human confirms against a pilot book.
+
+**`exposed_sector` may be a single `[from, to]` arc or a list of them.** Four
+berths are open to more than one arc - San Pietro faces east *and* has a gap
+to the north - and scoring only the widest reported a northerly there as
+sheltered. `sector_proximity` takes the max across arcs; there are tests for
+both forms.
+
 ## Gotchas discovered the hard way
 
 * **ECMWF AIFS publishes no gust field.** "Max gust across models" was silently

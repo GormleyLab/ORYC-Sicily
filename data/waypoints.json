@@ -4,182 +4,241 @@
     "portorosa": {
       "name": "Portorosa Marina",
       "island": "Sicily (Tonnarella / Furnari)",
-      "lat": 38.132,
-      "lon": 15.088,
+      "lat": 38.1262,
+      "lon": 15.1085,
       "type": "marina",
       "exposed_sector": null,
       "shelter_note": "Fully enclosed artificial marina basin - all-round shelter.",
       "verified": false,
-      "group": "Portorosa"
+      "group": "Portorosa",
+      "position_source": "OSM 'Marina di Portorosa'; moved 325 m on 315°"
     },
     "lipari_pignataro": {
       "name": "Porto Pignataro",
       "island": "Lipari",
-      "lat": 38.479,
-      "lon": 14.966,
+      "lat": 38.4769,
+      "lon": 14.9615,
       "type": "harbour",
       "exposed_sector": [
-        60,
-        120
+        95,
+        161
       ],
       "shelter_note": "Largest harbour in the Aeolians and the safest port in the group. Breakwatered; only a hard easterly sets any swell inside.",
       "verified": false,
-      "group": "Lipari"
+      "group": "Lipari",
+      "position_source": "OSM 'Porto Pignataro'; moved 125 m on 240°",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "lipari_marina_lunga": {
       "name": "Marina Lunga / Porto Lipari",
       "island": "Lipari",
-      "lat": 38.47,
-      "lon": 14.959,
+      "lat": 38.4714,
+      "lon": 14.9563,
       "type": "dock",
       "exposed_sector": [
-        20,
-        140
+        67,
+        152
       ],
       "shelter_note": "Town quay on the east coast. Fuel and water available. Open to the NE-SE quadrant and to ferry wash.",
       "verified": false,
-      "group": "Lipari"
+      "group": "Lipari",
+      "position_source": "OSM 'Lipari Marina Lunga'; moved 125 m on 025°",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "lipari_valle_muria": {
       "name": "Valle Muria",
       "island": "Lipari",
-      "lat": 38.453,
-      "lon": 14.927,
+      "lat": 38.4565,
+      "lon": 14.9295,
       "type": "anchorage",
       "exposed_sector": [
-        180,
-        290
+        175,
+        303
       ],
       "shelter_note": "Beautiful SW-facing bay, very safe anchoring in northerlies and easterlies. Untenable in anything from S through W.",
       "verified": false,
-      "group": "Lipari"
+      "group": "Lipari",
+      "position_source": "explicit fallback; already clear",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "panarea_sanpietro": {
       "name": "San Pietro buoy field",
       "island": "Panarea",
-      "lat": 38.638,
-      "lon": 15.073,
+      "lat": 38.6395,
+      "lon": 15.079,
       "type": "buoy",
       "exposed_sector": [
-        30,
-        150
+        [
+          103,
+          186
+        ],
+        [
+          340,
+          41
+        ],
+        [
+          55,
+          80
+        ]
       ],
       "shelter_note": "Main buoy field off the port town on the east coast. Exposed to the NE-SE.",
       "verified": false,
-      "group": "Panarea"
+      "group": "Panarea",
+      "position_source": "explicit fallback; moved 50 m on 000°",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "panarea_drautto": {
       "name": "Drautto buoy field",
       "island": "Panarea",
-      "lat": 38.631,
-      "lon": 15.076,
+      "lat": 38.6315,
+      "lon": 15.0775,
       "type": "buoy",
       "exposed_sector": [
-        45,
-        160
+        [
+          83,
+          232
+        ],
+        [
+          10,
+          35
+        ]
       ],
       "shelter_note": "Buoy field and anchoring south of San Pietro. Exposed to the E-SE.",
       "verified": false,
-      "group": "Panarea"
+      "group": "Panarea",
+      "position_source": "explicit fallback; already clear",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "panarea_zimmari": {
       "name": "Cala Zimmari",
       "island": "Panarea",
-      "lat": 38.629,
-      "lon": 15.078,
+      "lat": 38.6288,
+      "lon": 15.079,
       "type": "anchorage",
       "exposed_sector": [
-        90,
-        200
+        [
+          76,
+          249
+        ],
+        [
+          358,
+          31
+        ]
       ],
       "shelter_note": "Black sand bay on the SE corner. Good in northerlies, rolly from the E and S.",
       "verified": false,
-      "group": "Panarea"
+      "group": "Panarea",
+      "position_source": "explicit fallback; already clear",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "panarea_milazzese": {
       "name": "Baia Milazzese",
       "island": "Panarea",
-      "lat": 38.627,
-      "lon": 15.066,
+      "lat": 38.6264,
+      "lon": 15.0664,
       "type": "anchorage",
       "exposed_sector": [
-        130,
-        230
+        76,
+        225
       ],
       "shelter_note": "South-facing bay under the Bronze Age headland. Best shelter on Panarea in a northerly.",
       "verified": false,
-      "group": "Panarea"
+      "group": "Panarea",
+      "position_source": "explicit fallback; already clear",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "stromboli_gabbiano": {
       "name": "Marina del Gabbiano",
       "island": "Stromboli",
-      "lat": 38.797,
-      "lon": 15.236,
+      "lat": 38.8007,
+      "lon": 15.2441,
       "type": "buoy",
       "exposed_sector": [
-        0,
-        150
+        [
+          22,
+          209
+        ],
+        [
+          343,
+          18
+        ]
       ],
       "shelter_note": "Reserved buoys 600 m north of Scari on the east coast. DO NOT ANCHOR - the bottom is very rocky. Open to the whole northern-through-southeastern arc.",
       "no_anchoring": true,
       "verified": false,
-      "group": "Stromboli"
+      "group": "Stromboli",
+      "position_source": "explicit fallback; already clear",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "filicudi_porto": {
       "name": "Filicudi Porto",
       "island": "Filicudi",
-      "lat": 38.575,
-      "lon": 14.578,
+      "lat": 38.5606,
+      "lon": 14.5858,
       "type": "harbour",
       "exposed_sector": [
-        0,
-        120
+        345,
+        99
       ],
       "shelter_note": "Small port with limited dockage and mooring buoys on the NE side. Exposed N through ESE.",
       "verified": false,
-      "group": "Filicudi"
+      "group": "Filicudi",
+      "position_source": "explicit fallback; already clear",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "filicudi_pecorini": {
       "name": "Pecorini a Mare",
       "island": "Filicudi",
-      "lat": 38.556,
-      "lon": 14.563,
+      "lat": 38.5578,
+      "lon": 14.5683,
       "type": "anchorage",
       "exposed_sector": [
-        140,
-        250
+        109,
+        269
       ],
       "shelter_note": "Picturesque sheltered bay on the southern coast. The lee-side alternative when Filicudi Porto is exposed.",
       "verified": false,
-      "group": "Filicudi"
+      "group": "Filicudi",
+      "position_source": "explicit fallback; moved 50 m on 105°",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "salina_santamarina": {
       "name": "Porto Santa Marina Salina",
       "island": "Salina",
-      "lat": 38.557,
-      "lon": 14.873,
+      "lat": 38.5591,
+      "lon": 14.8744,
       "type": "dock",
       "exposed_sector": [
-        20,
-        140
+        [
+          8,
+          117
+        ],
+        [
+          167,
+          185
+        ]
       ],
       "shelter_note": "Floating piers and mooring buoys on the east coast. Exposed to the NE-SE.",
       "verified": false,
-      "group": "Salina"
+      "group": "Salina",
+      "position_source": "OSM 'Santa Marina Salina'; moved 200 m on 045°",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     },
     "salina_rinella": {
       "name": "Rinella",
       "island": "Salina",
-      "lat": 38.545,
-      "lon": 14.816,
+      "lat": 38.5461,
+      "lon": 14.8302,
       "type": "anchorage",
       "exposed_sector": [
-        140,
-        250
+        139,
+        282
       ],
       "shelter_note": "Scenic and protected anchorage on the south side with a dinghy dock. The lee-side alternative to Santa Marina in an easterly.",
       "verified": false,
-      "group": "Salina"
+      "group": "Salina",
+      "position_source": "explicit fallback; moved 50 m on 190°",
+      "sector_source": "derived from OSM coastline, rays to 5 nm"
     }
   },
   "points_of_interest": {
@@ -219,12 +278,12 @@
       "stated_time": "3:40",
       "optional": false,
       "midpoint": {
-        "lat": 38.306,
-        "lon": 15.027
+        "lat": 38.3015,
+        "lon": 15.035
       },
       "wave_point": {
-        "lat": 38.306,
-        "lon": 15.027
+        "lat": 38.3015,
+        "lon": 15.035
       },
       "note": "First passage of the trip, out of the Golfo di Patti and north to the archipelago."
     },
@@ -238,12 +297,12 @@
       "stated_time": "2:00",
       "optional": false,
       "midpoint": {
-        "lat": 38.559,
-        "lon": 15.02
+        "lat": 38.5582,
+        "lon": 15.0203
       },
       "wave_point": {
-        "lat": 38.559,
-        "lon": 15.02
+        "lat": 38.5582,
+        "lon": 15.0203
       },
       "note": "Shortest passage of the trip."
     },
@@ -257,12 +316,12 @@
       "stated_time": "4:10",
       "optional": true,
       "midpoint": {
-        "lat": 38.638,
-        "lon": 15.101
+        "lat": 38.6388,
+        "lon": 15.1028
       },
       "wave_point": {
-        "lat": 38.638,
-        "lon": 15.101
+        "lat": 38.6388,
+        "lon": 15.1028
       },
       "note": "Monday-night alternative to Panarea. Plan the return to Panarea for Tuesday."
     },
@@ -276,12 +335,12 @@
       "stated_time": "1:50",
       "optional": true,
       "midpoint": {
-        "lat": 38.718,
-        "lon": 15.155
+        "lat": 38.7201,
+        "lon": 15.1616
       },
       "wave_point": {
-        "lat": 38.718,
-        "lon": 15.155
+        "lat": 38.7201,
+        "lon": 15.1616
       },
       "note": "Rejoin the fleet at Panarea."
     },
@@ -295,12 +354,12 @@
       "stated_time": "4:30",
       "optional": false,
       "midpoint": {
-        "lat": 38.607,
-        "lon": 14.826
+        "lat": 38.6,
+        "lon": 14.8324
       },
       "wave_point": {
-        "lat": 38.64,
-        "lon": 14.826
+        "lat": 38.6,
+        "lon": 14.8324
       },
       "note": "Longest passage of the trip - the full width of the archipelago, passing north of Salina."
     },
@@ -314,12 +373,12 @@
       "stated_time": "2:30",
       "optional": false,
       "midpoint": {
-        "lat": 38.566,
-        "lon": 14.726
+        "lat": 38.5598,
+        "lon": 14.7301
       },
       "wave_point": {
-        "lat": 38.566,
-        "lon": 14.726
+        "lat": 38.5598,
+        "lon": 14.7301
       },
       "note": "Back east to Salina for the final group dinner."
     },
@@ -333,12 +392,12 @@
       "stated_time": "4:00",
       "optional": false,
       "midpoint": {
-        "lat": 38.344,
-        "lon": 14.981
+        "lat": 38.3426,
+        "lon": 14.9915
       },
       "wave_point": {
-        "lat": 38.344,
-        "lon": 14.981
+        "lat": 38.3426,
+        "lon": 14.9915
       },
       "note": "Return passage. Hard arrival deadline of 16:00 - work backwards from it when picking a departure window.",
       "arrive_by": "16:00"

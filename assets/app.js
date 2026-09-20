@@ -437,8 +437,13 @@
 
     const list = sorted.map((o, i) => {
       const pct = o.score == null ? 0 : Math.round(o.score * 100);
-      const sector = o.exposed_sector
-        ? `open ${num(o.exposed_sector[0])}–${num(o.exposed_sector[1])}°` : 'enclosed';
+      // A berth may be open to more than one arc, so exposed_sector is either
+      // a single [from, to] or a list of them.
+      const arcs = !o.exposed_sector ? []
+        : (Array.isArray(o.exposed_sector[0]) ? o.exposed_sector : [o.exposed_sector]);
+      const sector = arcs.length
+        ? 'open ' + arcs.map(a => `${num(a[0])}–${num(a[1])}°`).join(', ')
+        : 'enclosed';
       return `<div class="opt${i === 0 && b.choice_matters ? ' is-best' : ''}">` +
         `<div class="opt-top"><span class="opt-name">${esc(o.name)}` +
         (o.verified ? '' : `<span class="badge-unver">unverified</span>`) +

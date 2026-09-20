@@ -147,11 +147,28 @@ horizon, so a normal run legitimately reports `legs with forecast: 0/7`. Use
 - [ ] Run *Actions → Update weather → Run workflow* once to seed the data
 - [ ] **Verify the waypoints** — see below
 
+## Deriving the waypoints
+
+```bash
+python scripts/fix_positions.py     # anchor to OSM harbours, snap into water
+python scripts/derive_sectors.py    # ray-cast the exposure sectors
+```
+
+Both report by default; `--write` applies. `fix_positions.py` anchors each
+mooring to its OpenStreetMap harbour, marina or anchorage feature and walks the
+point seaward until it is genuinely on water. `derive_sectors.py` casts a ray
+every degree out to 5 nm against coastline, breakwaters and piers, and keeps
+every arc that reaches open sea.
+
+Running these found that **four of the original thirteen coordinates sat on dry
+land**, which made their forecasts and shelter scores meaningless.
+
 ## ⚠ Before the fleet relies on this
 
-Every mooring in `data/waypoints.json` currently carries `"verified": false`.
-The coordinates and exposure sectors were derived from the itinerary text and
-general knowledge of the islands, not from a chart. **The shelter rankings are
+Every mooring in `data/waypoints.json` still carries `"verified": false`.
+Positions and sectors are now derived from OSM geometry rather than guessed,
+which is a much better first pass — but geometry cannot see swell refraction,
+depth, holding ground, or a low spit that stops swell but not wind. **The shelter rankings are
 only as good as those sectors** — a wrong sector produces a confidently wrong
 recommendation, which is the worst failure this site could have.
 

@@ -97,21 +97,32 @@ def in_sector(bearing: float, sector: Sequence[float] | None) -> bool:
     return b >= start or b <= end  # sector wraps through north
 
 
-def sector_proximity(bearing: float, sector: Sequence[float] | None,
+def _one_sector_proximity(bearing: float, sector: Sequence[float],
+                          margin: float) -> float:
+    if in_sector(bearing, sector):
+        return 1.0
+    gap = min(angular_difference(bearing, sector[0]),
+              angular_difference(bearing, sector[1]))
+    return max(0.0, 1.0 - gap / margin)
+
+
+def sector_proximity(bearing: float, sector: Sequence | None,
                      margin: float = 30.0) -> float:
     """How exposed `bearing` is to `sector`, 1.0 inside, tapering to 0.0.
 
     A berth does not become safe the instant the wind clears the headland, so
     directions just outside the sector still carry partial exposure, fading
     linearly over `margin` degrees.
+
+    `sector` may be a single [from, to] arc or a list of them. Several berths
+    here are open to more than one arc - San Pietro on Panarea faces east AND
+    has a gap to the north - and scoring only the widest arc would report the
+    others as sheltered.
     """
     if not sector:
         return 0.0
-    if in_sector(bearing, sector):
-        return 1.0
-    gap = min(angular_difference(bearing, sector[0]),
-              angular_difference(bearing, sector[1]))
-    return max(0.0, 1.0 - gap / margin)
+    arcs = sector if isinstance(sector[0], (list, tuple)) else [sector]
+    return max(_one_sector_proximity(bearing, a, margin) for a in arcs)
 
 
 # --- Wind relative to the boat ---------------------------------------------
@@ -291,14 +302,16 @@ def shelter_score(exposed_sector: Sequence[float] | None,
     else:
         verdict = "untenable"
 
+    arcs = (exposed_sector if isinstance(exposed_sector[0], (list, tuple))
+            else [exposed_sector])
     bits = []
     if wind_exposure > 0.5 and (wind_kt or 0) >= 8:
         bits.append(f"{compass_point(wind_dir)} wind {wind_kt:.0f} kt blows straight in")
     if swell_exposure > 0.5 and (swell_m or 0) >= 0.5:
         bits.append(f"{swell_m:.1f} m swell from {compass_point(swell_dir)} wraps in")
     if not bits:
-        sec = f"{exposed_sector[0]:.0f}-{exposed_sector[1]:.0f}°"
-        bits.append(f"Wind and swell stay clear of the exposed arc ({sec})")
+        sec = ", ".join(f"{a[0]:.0f}-{a[1]:.0f}°" for a in arcs)
+        bits.append(f"Wind and swell stay clear of the exposed arc{'s' if len(arcs) > 1 else ''} ({sec})")
 
     return {
         "score": round(score, 3), "verdict": verdict, "reason": "; ".join(bits),

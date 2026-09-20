@@ -214,6 +214,37 @@ def test_lipari_westerly_rules_out_valle_muria():
     assert pig["verdict"] == "sheltered"
 
 
+def test_multiple_arcs_are_all_scored():
+    """Several berths are open to more than one arc. San Pietro faces east and
+    has a gap to the north; scoring only the widest arc reported a northerly
+    as sheltered when it is not."""
+    arcs = [[103, 186], [340, 41]]
+    # inside the primary arc
+    assert s.sector_proximity(140, arcs) == 1.0
+    # inside the secondary arc - this is the case that used to be missed
+    assert s.sector_proximity(10, arcs) == 1.0
+    assert s.sector_proximity(355, arcs) == 1.0
+    # genuinely sheltered between the two
+    assert s.sector_proximity(250, arcs) == 0.0
+
+
+def test_multi_arc_shelter_score_flags_the_secondary_arc():
+    single = s.shelter_score([103, 186], wind_dir=10, wind_kt=22,
+                             swell_dir=10, swell_m=1.5)
+    multi = s.shelter_score([[103, 186], [340, 41]], wind_dir=10, wind_kt=22,
+                            swell_dir=10, swell_m=1.5)
+    assert single["verdict"] == "sheltered"      # the old, wrong answer
+    assert multi["score"] < single["score"]
+    assert multi["wind_exposed"] and multi["swell_exposed"]
+
+
+def test_single_arc_still_behaves_as_before():
+    """The list form must not change results for berths with one arc."""
+    a = s.shelter_score([60, 120], wind_dir=90, wind_kt=20, swell_dir=90, swell_m=1.2)
+    b = s.shelter_score([[60, 120]], wind_dir=90, wind_kt=20, swell_dir=90, swell_m=1.2)
+    assert a["score"] == b["score"] and a["verdict"] == b["verdict"]
+
+
 def test_shelter_score_is_bounded():
     for wd in range(0, 360, 15):
         out = s.shelter_score([60, 120], wind_dir=wd, wind_kt=60, swell_dir=wd, swell_m=6.0)

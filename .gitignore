@@ -20,3 +20,7 @@ desktop.ini
 
 # Large source asset, not shipped to the site
 picture-of-logo.jpg
+
+# Cached OSM extracts for the waypoint tools (regenerate with the scripts)
+scripts/_coastline.json
+scripts/_harbours.json
