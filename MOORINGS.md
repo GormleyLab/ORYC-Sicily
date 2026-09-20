@@ -161,27 +161,47 @@ grep -rn "the_key_you_removed" data/ scripts/ assets/
 
 ## Marking one verified
 
-`verified: true` means a human checked the exposure sector against a chart or a
-pilot book. OpenStreetMap geometry, a marina listing and a web search are
-**not** that standard — they are good enough to fix a position, not to close a
-sector.
+`verified: true` means the exposure sector was closed by someone who could
+actually settle it. **Two authorities count, and nothing else:**
 
-The idiomatic path is `scripts/apply_pilot.py`, which holds the Imray statements
-in a `PILOT` dict and sets the flag:
+* **the Imray pilot book**, because Heikell surveyed these anchorages;
+* **the fleet owner**, who sails them.
+
+OpenStreetMap geometry, marina listings and web searches are **not** that
+standard. They are good enough to fix a *position* — and they have fixed
+several — but none of them can close an *arc*, because the thing they all miss
+is swell bending round a headland, which is exactly what a wrong arc gets
+wrong.
+
+For the pilot book the idiomatic path is `scripts/apply_pilot.py`, which holds
+the Imray statements in a `PILOT` dict and sets the flag:
 
 ```bash
 python scripts/apply_pilot.py            # report: derived vs. pilot, side by side
 python scripts/apply_pilot.py --write    # apply, set verified: true
 ```
 
-Note the constraint in `test_sailing.py:252`: anything `verified` must carry a
-`sector_source` containing the word `Pilot`. If you verify from a chart or from
-a harbourmaster rather than from the book, that test fails **by design** — it
-is enforcing the current evidence standard. Widening it is a deliberate
-decision about what counts as verification, not a test to paper over.
+For an owner confirmation, edit the entry by hand and say so in
+`sector_source` — name what was confirmed, not just that it was. Drautto is the
+worked example: the arc is ray-cast, but the one quarter geometry could not
+settle (whether NE gets in past Punta Torrione) was put to the owner and
+answered.
 
-Three moorings are currently unverified: **Portorosa**, **Drautto** and **Baia
-Milazzese**. Their positions have been cross-checked, their sectors have not.
+Two tests enforce this, in `scripts/test_sailing.py`:
+
+* `test_verified_moorings_carry_their_source` — a verified berth with a real
+  arc must name one of `SECTOR_AUTHORITIES` in `sector_source`; one with
+  `exposed_sector: null` must instead say the basin is `enclosed`.
+* `test_no_mooring_is_verified_by_geometry_alone` — a verified berth's source
+  may not still be the raw `derived from OSM…` string that
+  `derive_sectors.py` writes. That combination means a derived arc was blessed
+  without anyone actually checking it.
+
+Widening `SECTOR_AUTHORITIES` is a deliberate decision about what counts as
+evidence. Make it on purpose; never delete an assertion to make a flag stick.
+
+One mooring is currently unverified: **Baia Milazzese**. Its sector is still
+ray-cast, and it shares its water with Cala Zimmari.
 
 ## After any change
 

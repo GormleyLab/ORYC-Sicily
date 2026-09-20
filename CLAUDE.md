@@ -143,7 +143,9 @@ of being inside a coastline ring) and a crossing-parity test said inside.
 breakwaters and piers, and keeps every open arc. It is a much better first
 pass than a guess, but it is still **not** a chart check: it cannot see swell
 refraction, depth, holding ground, or a low spit that stops swell but not
-wind. `verified` stays false until a human confirms against a pilot book.
+wind. `verified` stays false until one of the two authorities confirms it: the
+Imray pilot book, or the fleet owner, who sails these anchorages. See
+`MOORINGS.md` - the rule is enforced by two tests.
 
 **`exposed_sector` may be a single `[from, to]` arc or a list of them.** Four
 berths are open to more than one arc - San Pietro faces east *and* has a gap

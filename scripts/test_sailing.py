@@ -249,15 +249,22 @@ def test_stromboli_is_exposed_from_every_direction():
         assert out["verdict"] != "sheltered", f"bearing {brg} read as sheltered"
 
 
+# Two authorities may close an exposure sector, and nothing else. The pilot
+# book, because Heikell surveyed these anchorages; and the fleet owner, who
+# sails them. Geometry, OpenStreetMap, marina listings and web searches fix
+# POSITIONS - none of them can settle an arc, because the thing they all miss
+# is swell bending round a headland, which is what a wrong arc gets wrong.
+SECTOR_AUTHORITIES = ("Pilot", "owner")
+
+
 def test_verified_moorings_carry_their_source():
     """Anything marked verified must say what verified it.
 
-    A berth with a real exposure arc can only be closed by the pilot book - a
-    wrong arc is the worst bug this project can have, and no web source can
-    settle one. A berth with `exposed_sector: null` has no arc to get wrong:
-    `shelter_score` returns 1.0 unconditionally, so what is being verified is
-    only that the basin really is enclosed. An owner confirmation is enough
-    for that, and nothing weaker: the source must still name what closed it.
+    A berth with a real exposure arc needs one of SECTOR_AUTHORITIES named in
+    its source - a wrong arc is the worst bug this project can have. A berth
+    with `exposed_sector: null` has no arc to get wrong: `shelter_score`
+    returns 1.0 unconditionally, so what is being verified is only that the
+    basin really is enclosed, and the source must say so.
     """
     for key, m in MOORINGS.items():
         if not m.get("verified"):
@@ -267,7 +274,23 @@ def test_verified_moorings_carry_their_source():
             assert "enclosed" in m["sector_source"], (
                 f"{key} has no arc, so its source must say why that is safe")
         else:
-            assert "Pilot" in m["sector_source"], f"{key} source is not the pilot book"
+            assert any(a in m["sector_source"] for a in SECTOR_AUTHORITIES), (
+                f"{key} sector_source names no recognised authority "
+                f"(one of {SECTOR_AUTHORITIES}): {m['sector_source']!r}")
+
+
+def test_no_mooring_is_verified_by_geometry_alone():
+    """The failure this guards against is a derived arc quietly being blessed.
+
+    `derive_sectors.py` writes `sector_source` itself, so a careless --write
+    followed by a flag flip would present ray-cast geometry as verified.
+    """
+    for key, m in MOORINGS.items():
+        if not m.get("verified") or m.get("exposed_sector") is None:
+            continue
+        src = m["sector_source"]
+        assert not src.startswith("derived from OSM"), (
+            f"{key} is verified but its source is still the raw derivation")
 
 
 def test_multiple_arcs_are_all_scored():

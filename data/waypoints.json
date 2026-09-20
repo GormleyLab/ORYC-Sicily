@@ -94,12 +94,12 @@
         97,
         227
       ],
-      "shelter_note": "Nautilus buoy field in Baia di Drautto, the southeast-facing bay south of San Pietro. Open E through SW; sheltered from the NW sectors.",
-      "verified": false,
+      "shelter_note": "Nautilus buoy field in Baia di Drautto, the southeast-facing bay south of San Pietro. Open E through SW; sheltered from the NW sectors, and Punta Torrione gives sufficient protection from the NE.",
+      "verified": true,
       "group": "Panarea",
-      "position_source": "Campo Boe Nautilus, Baia di Drautto 38°37.73'N 015°04.20'E (operator listing); 70 m SE of OSM 'Spiaggetta di Drautto'",
-      "sector_source": "derived from OSM coastline, rays to 5 nm",
-      "verification_note": "Not described separately in the Isole Eolie chapter. Position corrected from 38.6315,15.0775, which lay ~720 m ENE - round Punta Torrione on the east-facing coast, not in the bay at all - and the sector re-derived from the corrected position. Two caveats on that sector: 200 m further offshore the open arc widens to 76-243, so the outer buoys are less sheltered than this figure; and a second source describes the bay as open to the NE, which the ray-cast attributes to Punta Torrione. Still a web cross-check, not a chart check."
+      "position_source": "confirmed by the fleet owner. Matches the Campo Boe Nautilus listing for Baia di Drautto, 38°37.73'N 015°04.20'E, 70 m SE of OSM 'Spiaggetta di Drautto'.",
+      "sector_source": "Ray-cast from OSM coastline to 5 nm, then confirmed by the fleet owner, who judged the NE protection sufficient - the one quarter geometry could not settle. Not in the Imray Isole Eolie chapter.",
+      "verification_note": "Verified by the fleet owner, not by the pilot book, which does not describe this bay. Position and sector both confirmed. The NE exposure a second source reported was raised and settled: the owner first thought there was some, then on looking again judged the protection sufficient, so the arc stays as derived and does NOT need a NE segment - it has been considered, not overlooked. One thing the owner was not asked: 200 m further offshore the arc widens to 76-243, so a boat on an outer buoy may be less sheltered than this figure. The earlier position, 38.6315,15.0775, was ~720 m ENE - round Punta Torrione on the east-facing coast, not in the bay at all."
     },
     "panarea_zimmari": {
       "name": "Cala Zimmari",
