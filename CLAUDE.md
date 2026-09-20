@@ -3,11 +3,27 @@
 ## Current state
 
 Complete and working end to end. The pipeline fetches five models, derives
-passage and berth guidance, and the page renders it. Not yet deployed: Pages
-needs enabling and `ANTHROPIC_API_KEY` needs adding as a repo secret.
+passage and berth guidance, and the page renders it.
 
-**The one open task that matters:** every mooring in `data/waypoints.json` is
-`"verified": false`. See "Safety-critical data" below.
+`ANTHROPIC_API_KEY` **is** set as a repo secret and the briefing is being
+produced - every `github-actions[bot]` weather commit carries one. A run from a
+shell without the key in its environment skips the briefing and says so in the
+output; that is the additive path working as designed, not a missing secret.
+Check before concluding otherwise:
+
+```bash
+git show <sha>:data/weather.json | python -c "import json,sys; print(bool(json.load(sys.stdin).get('briefing')))"
+```
+
+Whether Pages is enabled is a repo setting and cannot be read from the working
+tree - don't assert either way from here.
+
+**Safety-critical open task:** ten of the thirteen moorings in
+`data/waypoints.json` are `"verified": true` against the Imray pilot. The other
+three - Portorosa, Drautto and Baia Milazzese - are outside the Isole Eolie
+chapter. Their positions have since been cross-checked against OpenStreetMap
+and published harbour data, but their exposure sectors are still ray-cast
+geometry, so the flag stays false. See "Safety-critical data" below.
 
 ## Project summary
 

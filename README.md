@@ -143,9 +143,14 @@ horizon, so a normal run legitimately reports `legs with forecast: 0/7`. Use
 
 - [ ] Make the repository **public** (free Actions minutes and Pages)
 - [ ] **Settings → Pages → Deploy from branch → `main` / root**
-- [ ] **Settings → Secrets → Actions →** add `ANTHROPIC_API_KEY`
-- [ ] Run *Actions → Update weather → Run workflow* once to seed the data
+- [x] **Settings → Secrets → Actions →** add `ANTHROPIC_API_KEY`
+- [x] Run *Actions → Update weather → Run workflow* once to seed the data
 - [ ] **Verify the waypoints** — see below
+
+The two ticked boxes are provable from the repo: `github-actions[bot]` weather
+commits exist, and they carry a `briefing`, which only happens when the secret
+is present. The first two are repo settings and cannot be read from the working
+tree — check them in Settings rather than assuming.
 
 ## Deriving the waypoints
 
