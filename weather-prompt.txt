@@ -1,0 +1,2 @@
+Provide an evening marine weather briefing for sailing 5 45ft catamarans in the Aeolian Islands around 38.6 N, 15 E using the WeatherNext3 node closest to
+Lipari. Include the latest Weather Next3, ECMWF, and ItaliaMeteo forecasts, overnight anchorage conditions, wind speed and direction, gusts, Swell, and the outlook for the next morning. Provide the initialization times of the models. 

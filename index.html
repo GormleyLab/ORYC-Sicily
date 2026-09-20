@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORYC Aeolian Flotilla — Itinerary &amp; Weather</title>
+<meta name="description" content="Itinerary and multi-model marine weather briefings for the Ocean Reef Yacht Club flotilla in the Aeolian Islands, 3–10 October 2026.">
+<meta name="theme-color" content="#23408f">
+<link rel="icon" href="ORYC_flag.png">
+<link rel="apple-touch-icon" href="ORYC_flag.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+      integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=="
+      crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <img class="burgee" src="ORYC_flag.png" alt="Ocean Reef Yacht Club burgee">
+    <div class="masthead-text">
+      <div class="club">Ocean Reef Yacht Club</div>
+      <h1>Aeolian Flotilla</h1>
+      <div class="dates">Saturday 3 – Saturday 10 October 2026 · Portorosa, Sicily</div>
+    </div>
+    <div class="countdown" id="countdown" hidden>
+      <span class="n" id="countdown-n">–</span>
+      <span class="l" id="countdown-l">days out</span>
+    </div>
+  </div>
+</header>
+
+<div class="freshness">
+  <div class="wrap">
+    <div class="updated" id="updated">Loading forecast…</div>
+    <div class="model-badges" id="model-badges"></div>
+    <div id="alerts"></div>
+    <p class="disclaimer">
+      Planning aid only — <strong>not for navigation</strong>. Always verify against
+      the Guardia Costiera and Meteomar bulletins before departure, and treat the
+      go / caution / no-go calls as conservative thresholds, not decisions.
+      The skipper decides.
+    </p>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section id="briefing" aria-labelledby="h-briefing">
+    <div class="section-head">
+      <h2 id="h-briefing">Skipper's briefing</h2>
+      <span class="sub">Written from the model data below</span>
+    </div>
+    <div id="briefing-body"></div>
+  </section>
+
+  <section id="passages" aria-labelledby="h-passages">
+    <div class="section-head">
+      <h2 id="h-passages">Passage planner</h2>
+      <span class="sub">Conditions sampled at departure, midpoint and arrival · 6 kt planning speed</span>
+    </div>
+    <div id="legs-body"></div>
+  </section>
+
+  <section id="berths" aria-labelledby="h-berths">
+    <div class="section-head">
+      <h2 id="h-berths">Tonight's berth</h2>
+      <span class="sub">Mooring options ranked by shelter from the forecast wind and swell</span>
+    </div>
+    <div class="berth-grid" id="berths-body"></div>
+  </section>
+
+  <section id="map" aria-labelledby="h-map">
+    <div class="section-head">
+      <h2 id="h-map">Route &amp; moorings</h2>
+      <span class="sub">Drag the slider to scrub the forecast</span>
+    </div>
+    <div id="map-canvas"></div>
+    <div class="map-controls">
+      <span class="map-time" id="map-time">—</span>
+      <input type="range" id="map-slider" min="0" max="0" value="0" aria-label="Forecast hour">
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--go)"></i> sheltered</span>
+      <span><i class="dot" style="background:var(--caution)"></i> workable</span>
+      <span><i class="dot" style="background:#b4560c"></i> exposed</span>
+      <span><i class="dot" style="background:var(--nogo)"></i> untenable</span>
+      <span>↑ arrow flies with the wind</span>
+    </div>
+  </section>
+
+  <section id="charts" aria-labelledby="h-charts">
+    <div class="section-head">
+      <h2 id="h-charts">Wind &amp; sea</h2>
+      <span class="sub">All models overlaid — where the lines diverge, confidence is low</span>
+    </div>
+    <div class="chart-tabs" id="chart-tabs" role="group" aria-label="Choose a location"></div>
+    <div class="card">
+      <div class="chart-box"><canvas id="wind-chart"></canvas></div>
+      <div class="barbs" id="wind-barbs" aria-hidden="true"></div>
+      <div class="chart-box" style="margin-top:18px"><canvas id="sea-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section id="stromboli" aria-labelledby="h-strombo">
+    <div class="section-head">
+      <h2 id="h-strombo">Stromboli</h2>
+      <span class="sub">Monday-night option · Sciara del Fuoco night sail</span>
+    </div>
+    <div class="card strombo">
+      <p class="small" style="margin:0">
+        The Romans called Stromboli the <em>Lighthouse of the Mediterranean</em> around
+        300&nbsp;BC and it has been in near-continuous eruption since. Volcanic activity
+        changes week to week and access restrictions change with it, so check the
+        official bulletins close to the day rather than relying on anything cached here.
+      </p>
+      <p class="small muted" style="margin:10px 0 0">
+        <strong>Mooring:</strong> reserved buoys at Marina del Gabbiano, 600&nbsp;m north
+        of Scari. <strong>Do not anchor</strong> — the bottom is very rocky.
+        Guided summit excursions run 5–6 hours through MAGMATREK; the observatory
+        hike is about half an hour.
+      </p>
+      <div class="link-row">
+        <a class="link-btn" href="https://volcano.si.edu/volcano.cfm?vn=211040" target="_blank" rel="noopener">Smithsonian GVP report ↗</a>
+        <a class="link-btn" href="https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari" target="_blank" rel="noopener">INGV weekly bulletin ↗</a>
+        <a class="link-btn" href="https://en.wikipedia.org/wiki/Sciara_del_Fuoco" target="_blank" rel="noopener">Sciara del Fuoco ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="itinerary" aria-labelledby="h-itin">
+    <div class="section-head">
+      <h2 id="h-itin">Itinerary</h2>
+      <span class="sub">Eight days, seven islands</span>
+    </div>
+    <div id="itinerary-body"></div>
+  </section>
+
+  <section id="notes" aria-labelledby="h-notes">
+    <div class="section-head"><h2 id="h-notes">Fleet notes</h2></div>
+    <div class="card" id="notes-body"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      Forecasts from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> —
+      ECMWF IFS &amp; AIFS, ItaliaMeteo ARPAE ICON-2i, Météo-France MFWAM and ECMWF WAM.
+      ICON-2i data © ItaliaMeteo–ARPAE, CC BY 4.0. Map tiles © OpenStreetMap contributors.
+    </div>
+    <div>
+      Updated automatically once daily before the trip and twice daily while underway.
+      Briefing prose written by Claude from the model data shown above.
+    </div>
+    <div class="tiny">Ocean Reef Yacht Club Aeolian Flotilla · 3–10 October 2026</div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+        integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"
+        integrity="sha512-Y51n9mtKTVBh3Jbx5pZSJNDDMyY+yGe77DGtBPzRlgsf/YLCh13kSZ3JmfHGzYFCmOndraf0sQgfM654b7dJ3w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="assets/sailing.js"></script>
+<script src="assets/map.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

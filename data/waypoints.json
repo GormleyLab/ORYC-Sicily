@@ -1,0 +1,243 @@
+{
+  "_README": "Coordinates and exposure sectors are FIRST-PASS values derived from the itinerary text and general knowledge of the Aeolians. Every entry with \"verified\": false must be checked against satellite imagery and a pilot book before the fleet relies on it. An exposure sector is the arc of compass bearings (degrees true, [from, to] clockwise) that wind and swell arrive from when that berth becomes uncomfortable or untenable. A wrong sector produces a confidently wrong shelter recommendation.",
+
+  "moorings": {
+    "portorosa": {
+      "name": "Portorosa Marina",
+      "island": "Sicily (Tonnarella / Furnari)",
+      "lat": 38.132, "lon": 15.088,
+      "type": "marina",
+      "exposed_sector": null,
+      "shelter_note": "Fully enclosed artificial marina basin - all-round shelter.",
+      "verified": false
+    },
+    "lipari_pignataro": {
+      "name": "Porto Pignataro",
+      "island": "Lipari",
+      "lat": 38.479, "lon": 14.966,
+      "type": "harbour",
+      "exposed_sector": [60, 120],
+      "shelter_note": "Largest harbour in the Aeolians and the safest port in the group. Breakwatered; only a hard easterly sets any swell inside.",
+      "verified": false
+    },
+    "lipari_marina_lunga": {
+      "name": "Marina Lunga / Porto Lipari",
+      "island": "Lipari",
+      "lat": 38.470, "lon": 14.959,
+      "type": "dock",
+      "exposed_sector": [20, 140],
+      "shelter_note": "Town quay on the east coast. Fuel and water available. Open to the NE-SE quadrant and to ferry wash.",
+      "verified": false
+    },
+    "lipari_valle_muria": {
+      "name": "Valle Muria",
+      "island": "Lipari",
+      "lat": 38.453, "lon": 14.927,
+      "type": "anchorage",
+      "exposed_sector": [180, 290],
+      "shelter_note": "Beautiful SW-facing bay, very safe anchoring in northerlies and easterlies. Untenable in anything from S through W.",
+      "verified": false
+    },
+    "panarea_sanpietro": {
+      "name": "San Pietro buoy field",
+      "island": "Panarea",
+      "lat": 38.638, "lon": 15.073,
+      "type": "buoy",
+      "exposed_sector": [30, 150],
+      "shelter_note": "Main buoy field off the port town on the east coast. Exposed to the NE-SE.",
+      "verified": false
+    },
+    "panarea_drautto": {
+      "name": "Drautto buoy field",
+      "island": "Panarea",
+      "lat": 38.631, "lon": 15.076,
+      "type": "buoy",
+      "exposed_sector": [45, 160],
+      "shelter_note": "Buoy field and anchoring south of San Pietro. Exposed to the E-SE.",
+      "verified": false
+    },
+    "panarea_zimmari": {
+      "name": "Cala Zimmari",
+      "island": "Panarea",
+      "lat": 38.629, "lon": 15.078,
+      "type": "anchorage",
+      "exposed_sector": [90, 200],
+      "shelter_note": "Black sand bay on the SE corner. Good in northerlies, rolly from the E and S.",
+      "verified": false
+    },
+    "panarea_milazzese": {
+      "name": "Baia Milazzese",
+      "island": "Panarea",
+      "lat": 38.627, "lon": 15.066,
+      "type": "anchorage",
+      "exposed_sector": [130, 230],
+      "shelter_note": "South-facing bay under the Bronze Age headland. Best shelter on Panarea in a northerly.",
+      "verified": false
+    },
+    "stromboli_gabbiano": {
+      "name": "Marina del Gabbiano",
+      "island": "Stromboli",
+      "lat": 38.797, "lon": 15.236,
+      "type": "buoy",
+      "exposed_sector": [0, 150],
+      "shelter_note": "Reserved buoys 600 m north of Scari on the east coast. DO NOT ANCHOR - the bottom is very rocky. Open to the whole northern-through-southeastern arc.",
+      "no_anchoring": true,
+      "verified": false
+    },
+    "filicudi_porto": {
+      "name": "Filicudi Porto",
+      "island": "Filicudi",
+      "lat": 38.575, "lon": 14.578,
+      "type": "harbour",
+      "exposed_sector": [0, 120],
+      "shelter_note": "Small port with limited dockage and mooring buoys on the NE side. Exposed N through ESE.",
+      "verified": false
+    },
+    "filicudi_pecorini": {
+      "name": "Pecorini a Mare",
+      "island": "Filicudi",
+      "lat": 38.556, "lon": 14.563,
+      "type": "anchorage",
+      "exposed_sector": [140, 250],
+      "shelter_note": "Picturesque sheltered bay on the southern coast. The lee-side alternative when Filicudi Porto is exposed.",
+      "verified": false
+    },
+    "salina_santamarina": {
+      "name": "Porto Santa Marina Salina",
+      "island": "Salina",
+      "lat": 38.557, "lon": 14.873,
+      "type": "dock",
+      "exposed_sector": [20, 140],
+      "shelter_note": "Floating piers and mooring buoys on the east coast. Exposed to the NE-SE.",
+      "verified": false
+    },
+    "salina_rinella": {
+      "name": "Rinella",
+      "island": "Salina",
+      "lat": 38.545, "lon": 14.816,
+      "type": "anchorage",
+      "exposed_sector": [140, 250],
+      "shelter_note": "Scenic and protected anchorage on the south side with a dinghy dock. The lee-side alternative to Santa Marina in an easterly.",
+      "verified": false
+    }
+  },
+
+  "points_of_interest": {
+    "stromboli_sciara": {
+      "name": "Sciara del Fuoco",
+      "island": "Stromboli",
+      "lat": 38.793, "lon": 15.201,
+      "note": "Night viewing position on the NW side - the fleet sails here after dark to watch lava reach the sea.",
+      "verified": false
+    },
+    "salina_pollara": {
+      "name": "Pollara Bay",
+      "island": "Salina",
+      "lat": 38.572, "lon": 14.816,
+      "note": "Sunset and diving spot; Il Postino filming location.",
+      "verified": false
+    },
+    "filicudi_la_canna": {
+      "name": "La Canna",
+      "island": "Filicudi",
+      "lat": 38.583, "lon": 14.527,
+      "note": "71 m volcanic pinnacle rising from the sea off the NW coast.",
+      "verified": false
+    }
+  },
+
+  "legs": [
+    {
+      "id": "portorosa-lipari",
+      "label": "Portorosa → Lipari",
+      "date": "2026-10-04",
+      "from": "portorosa",
+      "to": "lipari_pignataro",
+      "stated_nm": 22,
+      "stated_time": "3:40",
+      "optional": false,
+      "midpoint": {"lat": 38.306, "lon": 15.027},
+      "wave_point": {"lat": 38.306, "lon": 15.027},
+      "note": "First passage of the trip, out of the Golfo di Patti and north to the archipelago."
+    },
+    {
+      "id": "lipari-panarea",
+      "label": "Lipari → Panarea",
+      "date": "2026-10-05",
+      "from": "lipari_pignataro",
+      "to": "panarea_sanpietro",
+      "stated_nm": 12,
+      "stated_time": "2:00",
+      "optional": false,
+      "midpoint": {"lat": 38.559, "lon": 15.020},
+      "wave_point": {"lat": 38.559, "lon": 15.020},
+      "note": "Shortest passage of the trip."
+    },
+    {
+      "id": "lipari-stromboli",
+      "label": "Lipari → Stromboli (optional)",
+      "date": "2026-10-05",
+      "from": "lipari_pignataro",
+      "to": "stromboli_gabbiano",
+      "stated_nm": 26,
+      "stated_time": "4:10",
+      "optional": true,
+      "midpoint": {"lat": 38.638, "lon": 15.101},
+      "wave_point": {"lat": 38.638, "lon": 15.101},
+      "note": "Monday-night alternative to Panarea. Plan the return to Panarea for Tuesday."
+    },
+    {
+      "id": "stromboli-panarea",
+      "label": "Stromboli → Panarea (optional return)",
+      "date": "2026-10-06",
+      "from": "stromboli_gabbiano",
+      "to": "panarea_sanpietro",
+      "stated_nm": 11,
+      "stated_time": "1:50",
+      "optional": true,
+      "midpoint": {"lat": 38.718, "lon": 15.155},
+      "wave_point": {"lat": 38.718, "lon": 15.155},
+      "note": "Rejoin the fleet at Panarea."
+    },
+    {
+      "id": "panarea-filicudi",
+      "label": "Panarea → Filicudi",
+      "date": "2026-10-07",
+      "from": "panarea_sanpietro",
+      "to": "filicudi_porto",
+      "stated_nm": 28,
+      "stated_time": "4:30",
+      "optional": false,
+      "midpoint": {"lat": 38.607, "lon": 14.826},
+      "wave_point": {"lat": 38.640, "lon": 14.826},
+      "note": "Longest passage of the trip - the full width of the archipelago, passing north of Salina."
+    },
+    {
+      "id": "filicudi-salina",
+      "label": "Filicudi → Salina",
+      "date": "2026-10-08",
+      "from": "filicudi_porto",
+      "to": "salina_santamarina",
+      "stated_nm": 15,
+      "stated_time": "2:30",
+      "optional": false,
+      "midpoint": {"lat": 38.566, "lon": 14.726},
+      "wave_point": {"lat": 38.566, "lon": 14.726},
+      "note": "Back east to Salina for the final group dinner."
+    },
+    {
+      "id": "salina-portorosa",
+      "label": "Salina → Portorosa",
+      "date": "2026-10-09",
+      "from": "salina_santamarina",
+      "to": "portorosa",
+      "stated_nm": 24,
+      "stated_time": "4:00",
+      "optional": false,
+      "midpoint": {"lat": 38.344, "lon": 14.981},
+      "wave_point": {"lat": 38.344, "lon": 14.981},
+      "note": "Return passage. Hard arrival deadline of 16:00 - work backwards from it when picking a departure window.",
+      "arrive_by": "16:00"
+    }
+  ]
+}

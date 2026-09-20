@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS cruft
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Local Claude settings
+.claude/settings.local.json
+
+# Large source asset, not shipped to the site
+picture-of-logo.jpg

@@ -1,0 +1,109 @@
+name: Update weather
+
+# Cadence, per the fleet's requirement:
+#   * once a day until the trip starts (the 05:40 UTC run only)
+#   * twice a day once underway (both runs)
+#
+# Times are chosen around when the model runs actually land:
+#   05:40 UTC = 07:40 CEST - after the 00Z ECMWF IFS run is published
+#   16:40 UTC = 18:40 CEST - after the 12Z ICON-2i run is published, in time
+#                            for an evening briefing like the captain's.
+# Italy is on CEST (UTC+2) for the whole trip; DST ends 25 Oct, after
+# disembarkation, so there is no clock change to handle.
+
+on:
+  schedule:
+    - cron: '40 5 * * *'
+    - cron: '40 16 * * *'
+  workflow_dispatch:
+    inputs:
+      skip_briefing:
+        description: 'Skip the Claude briefing (numbers only)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weather-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether this run should proceed
+        id: gate
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          TRIP_START=2026-10-03
+          TRIP_END=2026-10-11
+          TODAY=$(date -u +%F)
+
+          if [ "$EVENT" != "schedule" ]; then
+            echo "Manual run - proceeding."
+            echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          if [[ "$TODAY" > "$TRIP_END" ]]; then
+            echo "The flotilla finished on 2026-10-10. Nothing to update."
+            echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          # Before departure, only the morning run fires: one update a day.
+          if [[ "$TODAY" < "$TRIP_START" && "$SCHEDULE" == "40 16 * * *" ]]; then
+            echo "Pre-trip: skipping the evening run (daily cadence until $TRIP_START)."
+            echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          echo "Proceeding ($TODAY, schedule '$SCHEDULE')."
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: pip install -r scripts/requirements.txt
+
+      - name: Check the sailing maths
+        if: steps.gate.outputs.run == 'true'
+        run: python -m pytest scripts/ -q
+
+      - name: Fetch forecasts and rebuild weather.json
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ "${{ inputs.skip_briefing }}" = "true" ]; then
+            python scripts/update_weather.py --no-briefing
+          else
+            python scripts/update_weather.py
+          fi
+
+      - name: Check the page still renders against the new data
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/test_render.js
+
+      - name: Commit and push
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          if git diff --quiet -- data/weather.json; then
+            echo "Forecast unchanged - nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/weather.json
+          git commit -m "Weather update $(date -u '+%Y-%m-%d %H:%MZ')"
+          git push

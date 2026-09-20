@@ -1,0 +1,249 @@
+"""Unit tests for the derived sailing maths.
+
+Run: python -m pytest scripts/ -q
+"""
+
+import json
+import math
+import pathlib
+
+import pytest
+
+import sailing as s
+
+DATA = pathlib.Path(__file__).resolve().parent.parent / "data"
+WAYPOINTS = json.loads((DATA / "waypoints.json").read_text(encoding="utf-8"))
+MOORINGS = WAYPOINTS["moorings"]
+
+
+# --- Geometry ---------------------------------------------------------------
+
+def test_bearing_cardinal_directions():
+    assert s.initial_bearing(0, 0, 1, 0) == pytest.approx(0, abs=0.1)     # north
+    assert s.initial_bearing(0, 0, 0, 1) == pytest.approx(90, abs=0.1)    # east
+    assert s.initial_bearing(0, 0, -1, 0) == pytest.approx(180, abs=0.1)  # south
+    assert s.initial_bearing(0, 0, 0, -1) == pytest.approx(270, abs=0.1)  # west
+
+
+def test_bearing_is_always_in_range():
+    for lat in (-60, 0, 38.5, 70):
+        for lon in (-170, 0, 15, 179):
+            b = s.initial_bearing(38.5, 15.0, lat, lon)
+            assert 0 <= b < 360
+
+
+def test_distance_one_degree_of_latitude_is_sixty_nm():
+    assert s.distance_nm(38.0, 15.0, 39.0, 15.0) == pytest.approx(60, abs=0.2)
+
+
+@pytest.mark.parametrize("leg", WAYPOINTS["legs"], ids=lambda l: l["id"])
+def test_leg_distance_matches_the_itinerary(leg):
+    """Computed rhumb distance should be close to the itinerary's own figure.
+
+    The itinerary's numbers are sailed distances including any dogleg around
+    headlands, so the straight-line figure runs a little short. A 30% band
+    catches a transposed coordinate without flagging honest routing slack.
+    """
+    a, b = MOORINGS[leg["from"]], MOORINGS[leg["to"]]
+    computed = s.distance_nm(a["lat"], a["lon"], b["lat"], b["lon"])
+    stated = leg["stated_nm"]
+    assert computed == pytest.approx(stated, rel=0.30), (
+        f"{leg['id']}: computed {computed:.1f} nm vs itinerary {stated} nm"
+    )
+
+
+def test_portorosa_to_lipari_heads_roughly_north():
+    a, b = MOORINGS["portorosa"], MOORINGS["lipari_pignataro"]
+    bearing = s.initial_bearing(a["lat"], a["lon"], b["lat"], b["lon"])
+    assert 340 <= bearing or bearing <= 25, f"expected a northerly course, got {bearing:.0f}"
+
+
+def test_every_mooring_sits_in_the_aeolian_box():
+    """Guards against a lat/lon swap or a stray digit."""
+    for key, m in MOORINGS.items():
+        assert 38.0 <= m["lat"] <= 39.0, f"{key} latitude {m['lat']} out of range"
+        assert 14.4 <= m["lon"] <= 15.4, f"{key} longitude {m['lon']} out of range"
+
+
+# --- Sectors ----------------------------------------------------------------
+
+def test_in_sector_simple_and_wrapping():
+    assert s.in_sector(90, [60, 120])
+    assert not s.in_sector(200, [60, 120])
+    assert s.in_sector(10, [340, 20])     # wraps through north
+    assert s.in_sector(350, [340, 20])
+    assert not s.in_sector(180, [340, 20])
+
+
+def test_sector_proximity_tapers_outside_the_arc():
+    assert s.sector_proximity(90, [60, 120]) == 1.0
+    assert s.sector_proximity(135, [60, 120]) == pytest.approx(0.5, abs=0.01)
+    assert s.sector_proximity(180, [60, 120]) == 0.0
+    assert s.sector_proximity(90, None) == 0.0
+
+
+def test_angular_difference_handles_wraparound():
+    assert s.angular_difference(350, 10) == pytest.approx(20)
+    assert s.angular_difference(10, 350) == pytest.approx(20)
+    assert s.angular_difference(0, 180) == pytest.approx(180)
+
+
+def test_compass_point():
+    assert s.compass_point(0) == "N"
+    assert s.compass_point(90) == "E"
+    assert s.compass_point(293) == "WNW"
+    assert s.compass_point(359) == "N"
+    assert s.compass_point(None) == "-"
+
+
+# --- Wind relative to the boat ---------------------------------------------
+
+def test_true_wind_angle_and_point_of_sail():
+    assert s.true_wind_angle(0, 0) == 0            # dead on the nose
+    assert s.true_wind_angle(0, 180) == 180        # dead astern
+    assert s.true_wind_angle(90, 180) == 90        # beam on
+    assert s.point_of_sail(0) == "head to wind - motor"
+    # The point-of-sail label must never reuse the safety verdict's vocabulary.
+    assert "no-go" not in s.point_of_sail(0)
+    assert s.point_of_sail(40) == "close hauled"
+    assert s.point_of_sail(90) == "beam reach"
+    assert s.point_of_sail(170) == "run"
+
+
+def test_beaufort_boundaries():
+    assert s.beaufort(0)["force"] == 0
+    assert s.beaufort(12)["force"] == 4
+    assert s.beaufort(22)["force"] == 6
+    assert s.beaufort(35)["force"] == 8
+
+
+def test_reef_guidance_escalates_with_wind():
+    assert "Full main" in s.reef_guidance(12)
+    assert "First reef" in s.reef_guidance(20)
+    assert "Second reef" in s.reef_guidance(25)
+    assert "stay in port" in s.reef_guidance(40)
+
+
+# --- Verdicts ---------------------------------------------------------------
+
+def test_leg_verdict_green_amber_red():
+    assert s.leg_verdict(12, 18, 0.8)["verdict"] == "go"
+    assert s.leg_verdict(20, 26, 1.4)["verdict"] == "caution"
+    assert s.leg_verdict(28, 35, 2.4)["verdict"] == "no-go"
+
+
+def test_leg_verdict_gust_alone_can_force_no_go():
+    """Benign sustained wind must not mask a dangerous gust spread."""
+    out = s.leg_verdict(14, 34, 0.9)
+    assert out["verdict"] == "no-go"
+    assert any("Gusts" in r for r in out["reasons"])
+
+
+def test_thunderstorms_override_calm_wind():
+    out = s.leg_verdict(8, 12, 0.4, weather_codes=[3, 95])
+    assert out["verdict"] == "no-go"
+    assert any("Thunderstorm" in r for r in out["reasons"])
+
+
+def test_wind_against_swell_raises_caution():
+    out = s.leg_verdict(16, 21, 1.0, wind_dir=0, swell_dir=180)
+    assert out["verdict"] == "caution"
+    assert any("opposing swell" in r for r in out["reasons"])
+
+
+def test_gust_spike_in_light_wind_is_a_note_not_a_caution():
+    """IFS reports an interval-maximum gust; against a 4 kt mean that is an
+    artefact, and flagging it amber would train skippers to ignore amber."""
+    out = s.leg_verdict(4, 26, 0.2)
+    assert out["verdict"] == "go"
+    assert any("interval-maximum" in r for r in out["reasons"])
+
+
+def test_real_gust_in_a_real_breeze_still_triggers():
+    """The spike rule must not swallow a genuine gust in a working breeze."""
+    out = s.leg_verdict(20, 34, 1.0)
+    assert out["verdict"] == "no-go"
+    assert any("Gusts" in r and "interval-maximum" not in r for r in out["reasons"])
+
+
+def test_gust_spike_detection_boundaries():
+    assert s.is_gust_spike(4, 26)          # 6.5x on a light mean
+    assert not s.is_gust_spike(20, 34)     # 1.7x in a real breeze
+    assert not s.is_gust_spike(12, 34)     # mean too strong to be an artefact
+    assert not s.is_gust_spike(None, 30)
+    assert not s.is_gust_spike(0, 30)
+
+
+def test_verdict_unknown_when_no_data():
+    assert s.leg_verdict(None, None, None)["verdict"] == "unknown"
+
+
+# --- Shelter ----------------------------------------------------------------
+
+def test_enclosed_marina_always_sheltered():
+    out = s.shelter_score(None, wind_dir=90, wind_kt=30, swell_dir=90, swell_m=3.0)
+    assert out["score"] == 1.0
+    assert out["verdict"] == "sheltered"
+
+
+def test_salina_easterly_favours_rinella_over_santa_marina():
+    """The headline case: in a fresh easterly the fleet should move to the
+    south coast. Santa Marina faces east; Rinella faces south."""
+    sm = s.shelter_score(MOORINGS["salina_santamarina"]["exposed_sector"],
+                         wind_dir=90, wind_kt=20, swell_dir=90, swell_m=1.5)
+    rin = s.shelter_score(MOORINGS["salina_rinella"]["exposed_sector"],
+                          wind_dir=90, wind_kt=20, swell_dir=90, swell_m=1.5)
+    assert rin["score"] > sm["score"]
+    assert sm["wind_exposed"] and not rin["wind_exposed"]
+
+
+def test_salina_southerly_flips_the_recommendation_back():
+    sm = s.shelter_score(MOORINGS["salina_santamarina"]["exposed_sector"],
+                         wind_dir=190, wind_kt=20, swell_dir=190, swell_m=1.5)
+    rin = s.shelter_score(MOORINGS["salina_rinella"]["exposed_sector"],
+                          wind_dir=190, wind_kt=20, swell_dir=190, swell_m=1.5)
+    assert sm["score"] > rin["score"]
+
+
+def test_lipari_westerly_rules_out_valle_muria():
+    vm = s.shelter_score(MOORINGS["lipari_valle_muria"]["exposed_sector"],
+                         wind_dir=250, wind_kt=25, swell_dir=250, swell_m=2.0)
+    pig = s.shelter_score(MOORINGS["lipari_pignataro"]["exposed_sector"],
+                          wind_dir=250, wind_kt=25, swell_dir=250, swell_m=2.0)
+    assert vm["verdict"] in ("exposed", "untenable")
+    assert pig["verdict"] == "sheltered"
+
+
+def test_shelter_score_is_bounded():
+    for wd in range(0, 360, 15):
+        out = s.shelter_score([60, 120], wind_dir=wd, wind_kt=60, swell_dir=wd, swell_m=6.0)
+        assert 0.0 <= out["score"] <= 1.0
+
+
+def test_calm_conditions_leave_every_berth_sheltered():
+    for key, m in MOORINGS.items():
+        out = s.shelter_score(m["exposed_sector"], wind_dir=90, wind_kt=3,
+                              swell_dir=90, swell_m=0.2)
+        assert out["verdict"] == "sheltered", f"{key} flagged in near-calm"
+
+
+# --- Model agreement --------------------------------------------------------
+
+def test_model_agreement_confidence_bands():
+    assert s.model_agreement([12, 13, 14])["confidence"] == "high"
+    assert s.model_agreement([10, 16, 18])["confidence"] == "moderate"
+    assert s.model_agreement([8, 20, 25])["confidence"] == "low"
+    assert s.model_agreement([12])["confidence"] == "single-model"
+    assert s.model_agreement([None, None])["confidence"] == "none"
+
+
+def test_model_agreement_ignores_missing_models():
+    out = s.model_agreement([12, None, 14])
+    assert out["n"] == 2 and out["mean"] == pytest.approx(13)
+
+
+def test_circular_mean_near_north():
+    """A plain average of 350 and 10 gives 180 - the exact wrong answer."""
+    assert s.circular_mean([350, 10]) == pytest.approx(0, abs=0.5)
+    assert s.circular_mean([80, 100]) == pytest.approx(90, abs=0.5)
+    assert s.circular_mean([]) is None
