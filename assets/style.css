@@ -588,6 +588,10 @@ table.stab td:first-child { font-family: var(--sans); }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: .72rem; color: var(--ink-soft); margin-top: 8px; }
 .legend span { display: inline-flex; align-items: center; gap: 4px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+/* Points of interest draw as a white disc with a red ring, not a filled
+   dot - without a legend entry the ring reads as a warning. */
+.dot-poi { width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  background: #fff; border: 2px solid var(--red); box-sizing: border-box; }
 .leaflet-container { font: inherit; }
 .wind-pin { text-align: center; }
 .wind-arrow { color: var(--navy); display: flex; justify-content: center; }
