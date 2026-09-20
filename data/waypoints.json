@@ -234,11 +234,11 @@
     "salina_pollara": {
       "name": "Pollara Bay",
       "island": "Salina",
-      "lat": 38.577,
-      "lon": 14.8,
+      "lat": 38.579906,
+      "lon": 14.804968,
       "note": "Sunset and diving spot; Il Postino filming location.",
       "verified": false,
-      "position_source": "in the bay west of Pollara village (OSM hamlet 38.57708,14.80949); was 38.572,14.816, which is 1,137 m inland"
+      "position_source": "given by the fleet owner; 146 m off the coast in the bay. Earlier values were wrong twice: 38.572,14.816 was 1,137 m inland, and 38.577,14.800 was in the water but 540 m SW of the bay."
     },
     "filicudi_la_canna": {
       "name": "La Canna",
