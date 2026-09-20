@@ -4,17 +4,17 @@
     "portorosa": {
       "name": "Portorosa Marina",
       "island": "Sicily (Tonnarella / Furnari)",
-      "lat": 38.1262,
-      "lon": 15.1085,
+      "lat": 38.125774,
+      "lon": 15.112008,
       "type": "marina",
       "exposed_sector": null,
       "shelter_note": "Fully enclosed artificial marina basin - all-round shelter.",
-      "verified": false,
+      "verified": true,
       "group": "Portorosa",
-      "position_source": "OSM 'Marina di Portorosa'; moved 325 m on 315°",
-      "verification_note": "On the north Sicily coast, outside the Isole Eolie chapter. Two independent web sources put the marina itself at 38.1222-38.1229 N, 15.1114-15.1122 E, about 550 m SE of this waypoint; both test as land against the OSM coastline because the basin is artificial. This position is therefore a deliberate offshore proxy in the approach water off the entrance, not a berth.",
+      "position_source": "confirmed by the fleet owner - the berth inside the basin. Was 38.1262,15.1085, an offshore proxy 311 m WNW in the approach water.",
+      "verification_note": "On the north Sicily coast, outside the Isole Eolie chapter. The position is the owner's and is inside the marina basin, which OSM's coastline does not enclose - so geometry tools report it as 'land' and derive_sectors.py reports a wide open arc for it. Both are artefacts: the basin walls are not in the coastline data. Do not let derive_sectors.py --write overwrite exposed_sector here; null is correct for an enclosed basin, and two marina listings agree the breakwater and jetty give all-round shelter. The wave-model cell is land, so update_weather.nearest_marine falls back to the closest point with real data.",
       "hazard_note": "Entering is difficult with wind and sea from the northwest. Approaching from the west (Capo Tindari), stay offshore - close in, the entrance lights appear in the wrong order.",
-      "sector_source": "marina listings agree with the enclosed-basin reading: breakwater and jetty give shelter from all winds"
+      "sector_source": "owner-confirmed enclosed basin; no exposure arc to check. Two marina listings agree the breakwater and jetty give all-round shelter."
     },
     "lipari_pignataro": {
       "name": "Porto Pignataro",

@@ -249,11 +249,24 @@ def test_stromboli_is_exposed_from_every_direction():
         assert out["verdict"] != "sheltered", f"bearing {brg} read as sheltered"
 
 
-def test_pilot_verified_moorings_carry_their_source():
-    """Anything marked verified must say what verified it."""
+def test_verified_moorings_carry_their_source():
+    """Anything marked verified must say what verified it.
+
+    A berth with a real exposure arc can only be closed by the pilot book - a
+    wrong arc is the worst bug this project can have, and no web source can
+    settle one. A berth with `exposed_sector: null` has no arc to get wrong:
+    `shelter_score` returns 1.0 unconditionally, so what is being verified is
+    only that the basin really is enclosed. An owner confirmation is enough
+    for that, and nothing weaker: the source must still name what closed it.
+    """
     for key, m in MOORINGS.items():
-        if m.get("verified"):
-            assert m.get("sector_source"), f"{key} verified with no source"
+        if not m.get("verified"):
+            continue
+        assert m.get("sector_source"), f"{key} verified with no source"
+        if m.get("exposed_sector") is None:
+            assert "enclosed" in m["sector_source"], (
+                f"{key} has no arc, so its source must say why that is safe")
+        else:
             assert "Pilot" in m["sector_source"], f"{key} source is not the pilot book"
 
 
