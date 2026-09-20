@@ -141,16 +141,17 @@ horizon, so a normal run legitimately reports `legs with forecast: 0/7`. Use
 
 ## Setup checklist
 
-- [ ] Make the repository **public** (free Actions minutes and Pages)
-- [ ] **Settings → Pages → Deploy from branch → `main` / root**
+- [x] Make the repository **public** (free Actions minutes and Pages)
+- [x] **Settings → Pages → Deploy from branch → `main` / root**
 - [x] **Settings → Secrets → Actions →** add `ANTHROPIC_API_KEY`
 - [x] Run *Actions → Update weather → Run workflow* once to seed the data
 - [ ] **Verify the waypoints** — see below
 
-The two ticked boxes are provable from the repo: `github-actions[bot]` weather
-commits exist, and they carry a `briefing`, which only happens when the secret
-is present. The first two are repo settings and cannot be read from the working
-tree — check them in Settings rather than assuming.
+Setup is done; the site is live at <https://gormleylab.github.io/ORYC-Sicily/>.
+Verified with `gh`, not assumed — visibility PUBLIC, Pages `built` from `main` /
+root, the secret present since 2026-09-20 02:07Z, and bot weather commits
+carrying a briefing. Re-check with `gh repo view`, `gh api .../pages` and
+`gh secret list` rather than trusting this list.
 
 ## Deriving the waypoints
 

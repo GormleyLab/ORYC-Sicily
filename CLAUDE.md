@@ -2,21 +2,28 @@
 
 ## Current state
 
-Complete and working end to end. The pipeline fetches five models, derives
-passage and berth guidance, and the page renders it.
+**Deployed and live at https://gormleylab.github.io/ORYC-Sicily/** - the
+pipeline fetches five models, derives passage and berth guidance, the Action
+commits `data/weather.json`, and Pages serves it. Setup is finished: the repo
+is public, Pages is enabled and built from `main` / root, and
+`ANTHROPIC_API_KEY` is set as a repo secret (added 2026-09-20 02:07Z). Every
+`github-actions[bot]` weather commit carries a briefing.
 
-`ANTHROPIC_API_KEY` **is** set as a repo secret and the briefing is being
-produced - every `github-actions[bot]` weather commit carries one. A run from a
-shell without the key in its environment skips the briefing and says so in the
-output; that is the additive path working as designed, not a missing secret.
-Check before concluding otherwise:
+Don't guess at any of that - `gh` is installed and authenticated, so ask:
 
 ```bash
-git show <sha>:data/weather.json | python -c "import json,sys; print(bool(json.load(sys.stdin).get('briefing')))"
+gh repo view GormleyLab/ORYC-Sicily --json visibility
+gh api repos/GormleyLab/ORYC-Sicily/pages --jq '{status,branch:.source.branch}'
+gh secret list --repo GormleyLab/ORYC-Sicily
+gh workflow run update-weather.yml        # regenerate on demand
 ```
 
-Whether Pages is enabled is a repo setting and cannot be read from the working
-tree - don't assert either way from here.
+**A local `update_weather.py` run has no API key** unless you put one in the
+environment, so it writes `briefing: null` and says "briefing skipped" - that
+is the additive path working, not a missing secret. Do not commit such a run
+over a good one: it blanks the Skipper's briefing on the live site until the
+next cron. Prefer `gh workflow run update-weather.yml`, which uses the secret
+and lands a complete run.
 
 **Safety-critical open task:** ten of the thirteen moorings in
 `data/waypoints.json` are `"verified": true` against the Imray pilot. The other
