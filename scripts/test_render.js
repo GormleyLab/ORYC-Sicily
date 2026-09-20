@@ -168,8 +168,11 @@ setImmediate(() => {
     'notes-body': ['Dining', 'Moorings'],
     // Pre-trip these two carry the whole value of the page, so they must not
     // silently render empty.
-    'rehearsal-body': ['Passages'],
-    'stability-body': ['stability'],
+    'rehearsal-body': (weather.rehearsal || {}).available ? ['Passages'] : [],
+    // With no archive yet this section shows why, not a table - so the needle
+    // only applies when there is something to show.
+    'stability-body': (weather.verification || {}).available
+      ? ['stability, not accuracy'] : ['archive'],
     'briefing-body': [],
   };
 

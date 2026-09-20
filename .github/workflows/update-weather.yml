@@ -64,6 +64,11 @@ jobs:
 
       - uses: actions/checkout@v4
         if: steps.gate.outputs.run == 'true'
+        with:
+          # Full history: verification.py reads previous committed versions of
+          # data/weather.json to measure how far the forecast moves. The default
+          # depth-1 shallow clone leaves it nothing to compare.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         if: steps.gate.outputs.run == 'true'
