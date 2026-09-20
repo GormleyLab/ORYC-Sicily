@@ -163,12 +163,28 @@ every arc that reaches open sea.
 Running these found that **four of the original thirteen coordinates sat on dry
 land**, which made their forecasts and shelter scores meaningless.
 
+## Pilot book verification
+
+Ten of the thirteen moorings are now checked against Imray's *Italian Waters
+Pilot* (Heikell), Isole Eolie chapter, via `scripts/apply_pilot.py`. Where the
+pilot states a shelter direction it wins over the geometry, and the entry
+carries its prose, any hazard it flags, and `verified: true`.
+
+It overturned two sectors outright. **Porto Pignataro is open SW**, not east —
+the harbour mouth faces into the Lipari roadstead — and **Santa Marina's south
+basin gives good all-round shelter**, with strong southerlies the concern. That
+reverses the Salina example: Rinella is the berth open E–S, and Santa Marina is
+the refuge in an easterly.
+
+Drautto, Baia Milazzese and Portorosa are not described in that chapter and
+keep their derived sectors with `verified: false`.
+
 ## ⚠ Before the fleet relies on this
 
-Every mooring in `data/waypoints.json` still carries `"verified": false`.
-Positions and sectors are now derived from OSM geometry rather than guessed,
-which is a much better first pass — but geometry cannot see swell refraction,
-depth, holding ground, or a low spit that stops swell but not wind. **The shelter rankings are
+Three moorings — Drautto, Baia Milazzese and Portorosa — still carry
+`"verified": false`, because the pilot chapter does not describe them. Their
+sectors come from OSM geometry, which cannot see swell refraction, depth,
+holding ground, or a low spit that stops swell but not wind. **The shelter rankings are
 only as good as those sectors** — a wrong sector produces a confidently wrong
 recommendation, which is the worst failure this site could have.
 

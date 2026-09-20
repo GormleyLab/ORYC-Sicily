@@ -11,23 +11,25 @@
       "shelter_note": "Fully enclosed artificial marina basin - all-round shelter.",
       "verified": false,
       "group": "Portorosa",
-      "position_source": "OSM 'Marina di Portorosa'; moved 325 m on 315°"
+      "position_source": "OSM 'Marina di Portorosa'; moved 325 m on 315°",
+      "verification_note": "On the north Sicily coast, outside the Isole Eolie chapter."
     },
     "lipari_pignataro": {
       "name": "Porto Pignataro",
       "island": "Lipari",
-      "lat": 38.4769,
-      "lon": 14.9615,
+      "lat": 38.4782,
+      "lon": 14.9647,
       "type": "harbour",
       "exposed_sector": [
-        95,
-        161
+        200,
+        250
       ],
-      "shelter_note": "Largest harbour in the Aeolians and the safest port in the group. Breakwatered; only a hard easterly sets any swell inside.",
-      "verified": false,
+      "shelter_note": "Good shelter in summer. Open SW for a short distance; strong southerlies make it untenable. The pilot calls it the safest place on Lipari.",
+      "verified": true,
       "group": "Lipari",
-      "position_source": "OSM 'Porto Pignataro'; moved 125 m on 240°",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "Gusts out of the bay from W-NW. Entrance between moored boats and the breakwater is tight when a tripper boat is moving."
     },
     "lipari_marina_lunga": {
       "name": "Marina Lunga / Porto Lipari",
@@ -36,14 +38,15 @@
       "lon": 14.9563,
       "type": "dock",
       "exposed_sector": [
-        67,
-        152
+        45,
+        135
       ],
-      "shelter_note": "Town quay on the east coast. Fuel and water available. Open to the NE-SE quadrant and to ferry wash.",
-      "verified": false,
+      "shelter_note": "Open NE-SE. With gales from anywhere many berths may become untenable, particularly with southerlies.",
+      "verified": true,
       "group": "Lipari",
       "position_source": "OSM 'Lipari Marina Lunga'; moved 125 m on 025°",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "Ground swell often creeps round beyond the harbour, and there is constant ferry wash. Keep pulled well off the pontoon."
     },
     "lipari_valle_muria": {
       "name": "Valle Muria",
@@ -52,40 +55,32 @@
       "lon": 14.9295,
       "type": "anchorage",
       "exposed_sector": [
-        175,
-        303
+        180,
+        280
       ],
-      "shelter_note": "Beautiful SW-facing bay, very safe anchoring in northerlies and easterlies. Untenable in anything from S through W.",
-      "verified": false,
+      "shelter_note": "Open W and south. Anchor towards the N end in 5-10 m.",
+      "verified": true,
       "group": "Lipari",
       "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "Reef at the S end of the bay."
     },
     "panarea_sanpietro": {
       "name": "San Pietro buoy field",
       "island": "Panarea",
       "lat": 38.6395,
-      "lon": 15.079,
+      "lon": 15.0802,
       "type": "buoy",
       "exposed_sector": [
-        [
-          103,
-          186
-        ],
-        [
-          340,
-          41
-        ],
-        [
-          55,
-          80
-        ]
+        30,
+        180
       ],
-      "shelter_note": "Main buoy field off the port town on the east coast. Exposed to the NE-SE.",
-      "verified": false,
+      "shelter_note": "Adequate in settled weather, but with any fresh wind or moderate sea from anywhere in the E this is not the place to be.",
+      "verified": true,
       "group": "Panarea",
-      "position_source": "explicit fallback; moved 50 m on 000°",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "Cannot anchor within 200 m of the pier; keep clear of the laid moorings. Yachts generally not permitted on the pier."
     },
     "panarea_drautto": {
       "name": "Drautto buoy field",
@@ -107,29 +102,25 @@
       "verified": false,
       "group": "Panarea",
       "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "sector_source": "derived from OSM coastline, rays to 5 nm",
+      "verification_note": "Not described separately in the Isole Eolie chapter."
     },
     "panarea_zimmari": {
       "name": "Cala Zimmari",
       "island": "Panarea",
-      "lat": 38.6288,
-      "lon": 15.079,
+      "lat": 38.6267,
+      "lon": 15.0667,
       "type": "anchorage",
       "exposed_sector": [
-        [
-          76,
-          249
-        ],
-        [
-          358,
-          31
-        ]
+        80,
+        190
       ],
-      "shelter_note": "Black sand bay on the SE corner. Good in northerlies, rolly from the E and S.",
-      "verified": false,
+      "shelter_note": "Open E and south. Anchor in 5-10 m on sand, good holding.",
+      "verified": true,
       "group": "Panarea",
-      "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "The Punta Milazzese area is technically off limits - navigating and anchoring in the vicinity is prohibited, and you may be told to move on."
     },
     "panarea_milazzese": {
       "name": "Baia Milazzese",
@@ -145,100 +136,93 @@
       "verified": false,
       "group": "Panarea",
       "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "sector_source": "derived from OSM coastline, rays to 5 nm",
+      "verification_note": "The pilot treats Baia Milazzese and Cala Zimmari together and gives one waypoint; this entry keeps its derived sector."
     },
     "stromboli_gabbiano": {
       "name": "Marina del Gabbiano",
       "island": "Stromboli",
-      "lat": 38.8007,
-      "lon": 15.2441,
+      "lat": 38.7985,
+      "lon": 15.2425,
       "type": "buoy",
       "exposed_sector": [
-        [
-          22,
-          209
-        ],
-        [
-          343,
-          18
-        ]
+        0,
+        359
       ],
-      "shelter_note": "Reserved buoys 600 m north of Scari on the east coast. DO NOT ANCHOR - the bottom is very rocky. Open to the whole northern-through-southeastern arc.",
+      "shelter_note": "An open roadstead. With winds from almost any direction an uncomfortable swell rolls around here. Suitable in calm weather only - leave at the slightest sign of bad weather.",
       "no_anchoring": true,
-      "verified": false,
+      "verified": true,
       "group": "Stromboli",
-      "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "Holding uncertain in places; underwater cables off the village. Mooring buoys N of the mole Apr-Oct; pick-up lines can be fouled."
     },
     "filicudi_porto": {
       "name": "Filicudi Porto",
       "island": "Filicudi",
-      "lat": 38.5606,
-      "lon": 14.5858,
+      "lat": 38.5617,
+      "lon": 14.5833,
       "type": "harbour",
       "exposed_sector": [
         345,
         99
       ],
-      "shelter_note": "Small port with limited dockage and mooring buoys on the NE side. Exposed N through ESE.",
-      "verified": false,
+      "shelter_note": "A short mole on the E side of the island; yachts anchor off in settled weather. About 20 visitors' moorings laid in the bay.",
+      "verified": true,
       "group": "Filicudi",
-      "position_source": "explicit fallback; already clear",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "An old groyne runs about 100 m SE from the ferry mole, just under the surface and hard to see. Bottom stoney with weed; holding not good everywhere."
     },
     "filicudi_pecorini": {
       "name": "Pecorini a Mare",
       "island": "Filicudi",
-      "lat": 38.5578,
-      "lon": 14.5683,
+      "lat": 38.5583,
+      "lon": 14.5667,
       "type": "anchorage",
       "exposed_sector": [
         109,
         269
       ],
-      "shelter_note": "Picturesque sheltered bay on the southern coast. The lee-side alternative when Filicudi Porto is exposed.",
-      "verified": false,
+      "shelter_note": "Anchor off rather than use the mole - there is really no room for yachts. Twelve yellow mooring buoys laid in summer.",
+      "verified": true,
       "group": "Filicudi",
-      "position_source": "explicit fallback; moved 50 m on 105°",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "There is nearly always some ground swell here, and it is deep everywhere. Not the calm alternative it looks on a chart."
     },
     "salina_santamarina": {
       "name": "Porto Santa Marina Salina",
       "island": "Salina",
-      "lat": 38.5591,
-      "lon": 14.8744,
+      "lat": 38.5537,
+      "lon": 14.8737,
       "type": "dock",
       "exposed_sector": [
-        [
-          8,
-          117
-        ],
-        [
-          167,
-          185
-        ]
+        150,
+        210
       ],
-      "shelter_note": "Floating piers and mooring buoys on the east coast. Exposed to the NE-SE.",
-      "verified": false,
+      "shelter_note": "Good shelter in settled conditions in both harbours; the S basin affords the better all-round shelter. Strong southerlies would probably affect the S basin.",
+      "verified": true,
       "group": "Salina",
-      "position_source": "OSM 'Santa Marina Salina'; moved 200 m on 045°",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383"
     },
     "salina_rinella": {
       "name": "Rinella",
       "island": "Salina",
-      "lat": 38.5461,
-      "lon": 14.8302,
+      "lat": 38.545,
+      "lon": 14.8267,
       "type": "anchorage",
       "exposed_sector": [
-        139,
-        282
+        90,
+        190
       ],
-      "shelter_note": "Scenic and protected anchorage on the south side with a dinghy dock. The lee-side alternative to Santa Marina in an easterly.",
-      "verified": false,
+      "shelter_note": "A short mole off a hamlet on the S coast. Open E-S.",
+      "verified": true,
       "group": "Salina",
-      "position_source": "explicit fallback; moved 50 m on 190°",
-      "sector_source": "derived from OSM coastline, rays to 5 nm"
+      "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
+      "hazard_note": "Limited anchoring room inside the laid local moorings; space outside them in 15 m+."
     }
   },
   "points_of_interest": {

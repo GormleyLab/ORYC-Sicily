@@ -186,45 +186,84 @@ def test_enclosed_marina_always_sheltered():
     assert out["verdict"] == "sheltered"
 
 
-def test_salina_easterly_favours_rinella_over_santa_marina():
-    """The headline case: in a fresh easterly the fleet should move to the
-    south coast. Santa Marina faces east; Rinella faces south."""
+def test_salina_easterly_favours_santa_marina_over_rinella():
+    """Pilot: Rinella is "Open E-S"; Santa Marina's S basin "affords the better
+    all-round shelter". So in an easterly the fleet wants Santa Marina.
+
+    This assertion is the reverse of what this test originally claimed. The
+    first version encoded a guessed sector that had Santa Marina open to the
+    east; the pilot book says otherwise, and the pilot wins.
+    """
     sm = s.shelter_score(MOORINGS["salina_santamarina"]["exposed_sector"],
                          wind_dir=90, wind_kt=20, swell_dir=90, swell_m=1.5)
     rin = s.shelter_score(MOORINGS["salina_rinella"]["exposed_sector"],
                           wind_dir=90, wind_kt=20, swell_dir=90, swell_m=1.5)
-    assert rin["score"] > sm["score"]
-    assert sm["wind_exposed"] and not rin["wind_exposed"]
-
-
-def test_salina_southerly_flips_the_recommendation_back():
-    sm = s.shelter_score(MOORINGS["salina_santamarina"]["exposed_sector"],
-                         wind_dir=190, wind_kt=20, swell_dir=190, swell_m=1.5)
-    rin = s.shelter_score(MOORINGS["salina_rinella"]["exposed_sector"],
-                          wind_dir=190, wind_kt=20, swell_dir=190, swell_m=1.5)
     assert sm["score"] > rin["score"]
+    assert rin["wind_exposed"] and not sm["wind_exposed"]
 
 
-def test_lipari_westerly_rules_out_valle_muria():
-    vm = s.shelter_score(MOORINGS["lipari_valle_muria"]["exposed_sector"],
-                         wind_dir=250, wind_kt=25, swell_dir=250, swell_m=2.0)
+def test_salina_strong_southerly_reaches_santa_marina():
+    """Pilot: "Strong southerlies would probably affect the S basin." A
+    southerly is the one direction that gets into Santa Marina."""
+    sm = s.shelter_score(MOORINGS["salina_santamarina"]["exposed_sector"],
+                         wind_dir=180, wind_kt=25, swell_dir=180, swell_m=2.0)
+    assert sm["wind_exposed"]
+    assert sm["verdict"] in ("exposed", "untenable", "workable")
+
+
+def test_lipari_northeasterly_favours_pignataro_over_marina_lunga():
+    """Pilot: Marina Lunga is "Open NE-SE"; Pignataro is open SW only. In a
+    fresh north-easterly Pignataro is the place to be - which is why the pilot
+    calls it the safest spot on Lipari."""
     pig = s.shelter_score(MOORINGS["lipari_pignataro"]["exposed_sector"],
-                          wind_dir=250, wind_kt=25, swell_dir=250, swell_m=2.0)
-    assert vm["verdict"] in ("exposed", "untenable")
-    assert pig["verdict"] == "sheltered"
+                          wind_dir=60, wind_kt=22, swell_dir=60, swell_m=1.5)
+    ml = s.shelter_score(MOORINGS["lipari_marina_lunga"]["exposed_sector"],
+                         wind_dir=60, wind_kt=22, swell_dir=60, swell_m=1.5)
+    assert pig["score"] > ml["score"]
+    assert ml["wind_exposed"] and not pig["wind_exposed"]
+
+
+def test_lipari_southwesterly_reaches_both_pignataro_and_valle_muria():
+    """Pilot: Valle Muria "Open W and south"; Pignataro "Open SW for a short
+    distance, but strong southerlies make it untenable". A SW blow is the case
+    where neither is comfortable.
+
+    Note the model has no concept of fetch: Pignataro's SW exposure is only
+    across the bay, so this over-states it. Erring toward exposed is the safe
+    direction, but it is why the pilot's prose is kept alongside the sector.
+    """
+    for key in ("lipari_valle_muria", "lipari_pignataro"):
+        out = s.shelter_score(MOORINGS[key]["exposed_sector"],
+                              wind_dir=235, wind_kt=25, swell_dir=235, swell_m=2.0)
+        assert out["wind_exposed"], key
+
+
+def test_stromboli_is_exposed_from_every_direction():
+    """Pilot: an open roadstead where "with winds from almost any direction an
+    uncomfortable swell rolls around here", suitable in calm weather only.
+    There is no sheltered arc to find, so no wind direction should read as
+    sheltered once it is blowing."""
+    for brg in range(0, 360, 30):
+        out = s.shelter_score(MOORINGS["stromboli_gabbiano"]["exposed_sector"],
+                              wind_dir=brg, wind_kt=20, swell_dir=brg, swell_m=1.5)
+        assert out["verdict"] != "sheltered", f"bearing {brg} read as sheltered"
+
+
+def test_pilot_verified_moorings_carry_their_source():
+    """Anything marked verified must say what verified it."""
+    for key, m in MOORINGS.items():
+        if m.get("verified"):
+            assert m.get("sector_source"), f"{key} verified with no source"
+            assert "Pilot" in m["sector_source"], f"{key} source is not the pilot book"
 
 
 def test_multiple_arcs_are_all_scored():
-    """Several berths are open to more than one arc. San Pietro faces east and
-    has a gap to the north; scoring only the widest arc reported a northerly
-    as sheltered when it is not."""
+    """Several berths are open to more than one arc. Scoring only the widest
+    reported a northerly at San Pietro as sheltered when it is not."""
     arcs = [[103, 186], [340, 41]]
-    # inside the primary arc
     assert s.sector_proximity(140, arcs) == 1.0
-    # inside the secondary arc - this is the case that used to be missed
-    assert s.sector_proximity(10, arcs) == 1.0
+    assert s.sector_proximity(10, arcs) == 1.0     # the arc that used to be missed
     assert s.sector_proximity(355, arcs) == 1.0
-    # genuinely sheltered between the two
     assert s.sector_proximity(250, arcs) == 0.0
 
 
@@ -245,17 +284,50 @@ def test_single_arc_still_behaves_as_before():
     assert a["score"] == b["score"] and a["verdict"] == b["verdict"]
 
 
+def test_all_round_exposure_never_claims_shelter():
+    """A berth open from every direction has no sheltered arc, so the reason
+    must not say wind and swell stay clear of it - even in light air."""
+    out = s.shelter_score([0, 359], wind_dir=90, wind_kt=4, swell_dir=90, swell_m=0.2)
+    assert "stay clear" not in out["reason"]
+    assert "every direction" in out["reason"]
+
+
+def test_light_wind_inside_the_arc_is_described_honestly():
+    out = s.shelter_score([60, 120], wind_dir=90, wind_kt=5, swell_dir=200, swell_m=0.2)
+    assert "stay clear" not in out["reason"]
+    assert "Open to the" in out["reason"]
+
+
+def test_all_round_exposure_is_never_labelled_sheltered():
+    """Stromboli's roadstead has no sheltered arc. Even flat calm it should
+    read as workable at best - "sheltered" would describe the place, not the
+    hour, and the place is never sheltered."""
+    out = s.shelter_score([0, 359], wind_dir=90, wind_kt=3, swell_dir=90, swell_m=0.1)
+    assert out["score"] >= 0.8
+    assert out["verdict"] == "workable"
+    out2 = s.shelter_score(MOORINGS["stromboli_gabbiano"]["exposed_sector"],
+                           wind_dir=90, wind_kt=3, swell_dir=90, swell_m=0.1)
+    assert out2["verdict"] != "sheltered"
+
+
 def test_shelter_score_is_bounded():
     for wd in range(0, 360, 15):
         out = s.shelter_score([60, 120], wind_dir=wd, wind_kt=60, swell_dir=wd, swell_m=6.0)
         assert 0.0 <= out["score"] <= 1.0
 
 
-def test_calm_conditions_leave_every_berth_sheltered():
+def test_calm_conditions_leave_every_berth_comfortable():
+    """In near-calm nothing should read worse than workable. Berths with no
+    sheltered arc at all - Stromboli's roadstead - top out at workable by
+    design, so they are exempt from the stronger assertion."""
     for key, m in MOORINGS.items():
-        out = s.shelter_score(m["exposed_sector"], wind_dir=90, wind_kt=3,
-                              swell_dir=90, swell_m=0.2)
-        assert out["verdict"] == "sheltered", f"{key} flagged in near-calm"
+        sec = m["exposed_sector"]
+        out = s.shelter_score(sec, wind_dir=90, wind_kt=3, swell_dir=90, swell_m=0.2)
+        assert out["score"] >= 0.8, f"{key} scored low in near-calm"
+        arcs = [] if not sec else (sec if isinstance(sec[0], (list, tuple)) else [sec])
+        all_round = sum((a[1] - a[0]) % 360 + 1 for a in arcs) >= 359
+        expected = "workable" if all_round else "sheltered"
+        assert out["verdict"] == expected, f"{key}: {out['verdict']} != {expected}"
 
 
 # --- Model agreement --------------------------------------------------------

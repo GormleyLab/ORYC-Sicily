@@ -289,12 +289,21 @@ def shelter_score(exposed_sector: Sequence[float] | None,
     wind_exposure = sector_proximity(wind_dir, exposed_sector) if wind_dir is not None else 0.0
     swell_exposure = sector_proximity(swell_dir, exposed_sector) if swell_dir is not None else 0.0
 
+    arcs_all = (exposed_sector if isinstance(exposed_sector[0], (list, tuple))
+                else [exposed_sector])
+    covers_all = sum((a[1] - a[0]) % 360 + 1 for a in arcs_all) >= 359
+
     wind_penalty = wind_exposure * min((wind_kt or 0.0) / 30.0, 1.0) * 0.55
     swell_penalty = swell_exposure * min((swell_m or 0.0) / 2.5, 1.0) * 0.45
     score = max(0.0, min(1.0, 1.0 - wind_penalty - swell_penalty))
 
-    if score >= 0.80:
+    # A berth with no sheltered arc is never "sheltered", however calm it
+    # happens to be right now - the label would read as a property of the
+    # place. Cap it at workable so the word keeps its meaning.
+    if score >= 0.80 and not covers_all:
         verdict = "sheltered"
+    elif score >= 0.80:
+        verdict = "workable"
     elif score >= 0.55:
         verdict = "workable"
     elif score >= 0.30:
@@ -304,14 +313,27 @@ def shelter_score(exposed_sector: Sequence[float] | None,
 
     arcs = (exposed_sector if isinstance(exposed_sector[0], (list, tuple))
             else [exposed_sector])
+    # A berth open from every direction has no sheltered arc at all. That is a
+    # standing property of the place, not a function of today's wind, so say it
+    # whatever the wind is doing.
     bits = []
+    if covers_all:
+        bits.append("Open from every direction - shelter here depends entirely "
+                    "on it staying calm")
     if wind_exposure > 0.5 and (wind_kt or 0) >= 8:
         bits.append(f"{compass_point(wind_dir)} wind {wind_kt:.0f} kt blows straight in")
+    elif wind_exposure > 0.5:
+        bits.append(f"Open to the {compass_point(wind_dir)}, but only "
+                    f"{(wind_kt or 0):.0f} kt at the moment")
     if swell_exposure > 0.5 and (swell_m or 0) >= 0.5:
         bits.append(f"{swell_m:.1f} m swell from {compass_point(swell_dir)} wraps in")
     if not bits:
+        # Only claim shelter when there genuinely is a sheltered arc. A berth
+        # open all round - Stromboli's roadstead - has none, and saying "wind
+        # and swell stay clear" there would be flatly untrue.
         sec = ", ".join(f"{a[0]:.0f}-{a[1]:.0f}°" for a in arcs)
-        bits.append(f"Wind and swell stay clear of the exposed arc{'s' if len(arcs) > 1 else ''} ({sec})")
+        bits.append(f"Wind and swell stay clear of the exposed arc"
+                    f"{'s' if len(arcs) > 1 else ''} ({sec})")
 
     return {
         "score": round(score, 3), "verdict": verdict, "reason": "; ".join(bits),

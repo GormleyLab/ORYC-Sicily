@@ -24,3 +24,7 @@ picture-of-logo.jpg
 # Cached OSM extracts for the waypoint tools (regenerate with the scripts)
 scripts/_coastline.json
 scripts/_harbours.json
+
+# Copyrighted reference - facts extracted into waypoints.json, but the
+# scanned pages are not ours to republish in a public repo.
+Pilot-book.pdf

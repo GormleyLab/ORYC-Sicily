@@ -69,6 +69,28 @@ The same applies to the go/caution/no-go thresholds in `sailing.py` — they are
 conservative defaults for 45ft cats, meant to be tuned by the fleet captain, and
 the page says so.
 
+## The pilot book is the authority
+
+`Pilot-book.pdf` is a 13-page scan (Imray *Italian Waters Pilot*, Heikell,
+Isole Eolie pp.371-383) with no text layer - extract the page images with
+pypdf and read those. `scripts/apply_pilot.py` encodes its shelter statements
+and sets `verified: true` for the ten moorings it covers. Drautto, Baia
+Milazzese and Portorosa are not described there and keep their derived
+sectors.
+
+**The pilot overturned two derived sectors and one of my own worked
+examples.** Porto Pignataro is open SW, not east - the harbour mouth faces
+into the roadstead - so both the hand guess (60-120) and the ray-cast (95-161)
+were wrong. Santa Marina's S basin has good all-round shelter with southerlies
+the concern, not the east-facing exposure that was derived. That reversed the
+Salina worked example: **Rinella is the one open E-S, and Santa Marina is the
+refuge in an easterly** - the opposite of what the tests originally asserted.
+
+Stromboli is the case geometry could never get: the pilot says swell rolls in
+from almost any direction, so its sector is the full circle and it is capped
+at "workable" however calm it is. A berth with no sheltered arc is never
+"sheltered" - that word would describe the place, not the hour.
+
 ## Waypoint tools
 
 Two scripts derive the safety-critical waypoint data from OpenStreetMap
