@@ -12,7 +12,9 @@
       "verified": false,
       "group": "Portorosa",
       "position_source": "OSM 'Marina di Portorosa'; moved 325 m on 315°",
-      "verification_note": "On the north Sicily coast, outside the Isole Eolie chapter."
+      "verification_note": "On the north Sicily coast, outside the Isole Eolie chapter. Two independent web sources put the marina itself at 38.1222-38.1229 N, 15.1114-15.1122 E, about 550 m SE of this waypoint; both test as land against the OSM coastline because the basin is artificial. This position is therefore a deliberate offshore proxy in the approach water off the entrance, not a berth.",
+      "hazard_note": "Entering is difficult with wind and sea from the northwest. Approaching from the west (Capo Tindari), stay offshore - close in, the entrance lights appear in the wrong order.",
+      "sector_source": "marina listings agree with the enclosed-basin reading: breakwater and jetty give shelter from all winds"
     },
     "lipari_pignataro": {
       "name": "Porto Pignataro",
@@ -85,25 +87,19 @@
     "panarea_drautto": {
       "name": "Drautto buoy field",
       "island": "Panarea",
-      "lat": 38.6315,
-      "lon": 15.0775,
+      "lat": 38.6288,
+      "lon": 15.07,
       "type": "buoy",
       "exposed_sector": [
-        [
-          83,
-          232
-        ],
-        [
-          10,
-          35
-        ]
+        97,
+        227
       ],
-      "shelter_note": "Buoy field and anchoring south of San Pietro. Exposed to the E-SE.",
+      "shelter_note": "Nautilus buoy field in Baia di Drautto, the southeast-facing bay south of San Pietro. Open E through SW; sheltered from the NW sectors.",
       "verified": false,
       "group": "Panarea",
-      "position_source": "explicit fallback; already clear",
+      "position_source": "Campo Boe Nautilus, Baia di Drautto 38°37.73'N 015°04.20'E (operator listing); 70 m SE of OSM 'Spiaggetta di Drautto'",
       "sector_source": "derived from OSM coastline, rays to 5 nm",
-      "verification_note": "Not described separately in the Isole Eolie chapter."
+      "verification_note": "Not described separately in the Isole Eolie chapter. Position corrected from 38.6315,15.0775, which lay ~720 m ENE - round Punta Torrione on the east-facing coast, not in the bay at all - and the sector re-derived from the corrected position. Two caveats on that sector: 200 m further offshore the open arc widens to 76-243, so the outer buoys are less sheltered than this figure; and a second source describes the bay as open to the NE, which the ray-cast attributes to Punta Torrione. Still a web cross-check, not a chart check."
     },
     "panarea_zimmari": {
       "name": "Cala Zimmari",
@@ -137,7 +133,7 @@
       "group": "Panarea",
       "position_source": "explicit fallback; already clear",
       "sector_source": "derived from OSM coastline, rays to 5 nm",
-      "verification_note": "The pilot treats Baia Milazzese and Cala Zimmari together and gives one waypoint; this entry keeps its derived sector."
+      "verification_note": "The pilot treats Baia Milazzese and Cala Zimmari together and gives one waypoint; this entry keeps its derived sector. A web cross-check agrees they are one piece of water - an Italian nautical guide puts Baia Milazzese at 38°37.62'N 015°04.12'E, 175 m from here, and lists Cala Junco separately 700 m SW. The 40 m gap between this entry and Cala Zimmari is real, not a coordinate slip."
     },
     "stromboli_gabbiano": {
       "name": "Marina del Gabbiano",
@@ -229,26 +225,29 @@
     "stromboli_sciara": {
       "name": "Sciara del Fuoco",
       "island": "Stromboli",
-      "lat": 38.793,
-      "lon": 15.201,
-      "note": "Night viewing position on the NW side - the fleet sails here after dark to watch lava reach the sea.",
-      "verified": false
+      "lat": 38.806,
+      "lon": 15.204,
+      "note": "Night viewing position on the NW side - the fleet sails here after dark to watch lava reach the sea. Stand off about 300 m from the foot of the scar.",
+      "verified": false,
+      "position_source": "moved into the water off the Sciara; was 38.793,15.201, which is 619 m inland on the volcano's flank"
     },
     "salina_pollara": {
       "name": "Pollara Bay",
       "island": "Salina",
-      "lat": 38.572,
-      "lon": 14.816,
+      "lat": 38.577,
+      "lon": 14.8,
       "note": "Sunset and diving spot; Il Postino filming location.",
-      "verified": false
+      "verified": false,
+      "position_source": "in the bay west of Pollara village (OSM hamlet 38.57708,14.80949); was 38.572,14.816, which is 1,137 m inland"
     },
     "filicudi_la_canna": {
       "name": "La Canna",
       "island": "Filicudi",
-      "lat": 38.583,
-      "lon": 14.527,
+      "lat": 38.5824,
+      "lon": 14.5213,
       "note": "71 m volcanic pinnacle rising from the sea off the NW coast.",
-      "verified": false
+      "verified": false,
+      "position_source": "OSM/Wikidata Q3820695 'La Canna' islet; was 38.583,14.527, 500 m E of it"
     }
   },
   "legs": [
