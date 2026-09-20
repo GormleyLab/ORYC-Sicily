@@ -501,6 +501,30 @@ section { margin-bottom: 30px; scroll-margin-top: 12px; }
 .await .txt { font-size: .82rem; color: var(--ink-mid); }
 .await .txt b { color: var(--ink); }
 
+.rehearsal-note { border-left: 3px solid var(--caution); font-size: .85rem; }
+.reh-leg {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center;
+  padding: 10px var(--pad); border-top: 1px solid var(--hair-soft);
+}
+.reh-leg:first-child { border-top: none; }
+.reh-leg .lab { font-weight: 600; font-size: .9rem; }
+.reh-leg .det { font-family: var(--mono); font-size: .76rem; color: var(--ink-mid);
+                grid-column: 1 / -1; display: flex; gap: 9px; flex-wrap: wrap; }
+.reh-date { font-family: var(--mono); font-size: .72rem; color: var(--ink-soft); }
+
+table.stab { width: 100%; border-collapse: collapse; font-size: .82rem; }
+table.stab th {
+  text-align: left; font-size: .6rem; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-soft); font-weight: 600; padding: 7px var(--pad);
+  border-bottom: 1px solid var(--hair); white-space: nowrap;
+}
+table.stab td { padding: 7px var(--pad); border-top: 1px solid var(--hair-soft);
+                font-family: var(--mono); white-space: nowrap; }
+table.stab td:first-child { font-family: var(--sans); }
+.stab-bar { display: inline-block; height: 5px; border-radius: 3px; background: var(--navy);
+            vertical-align: middle; margin-left: 7px; min-width: 2px; }
+:root[data-theme="night"] .stab-bar { background: var(--accent); }
+
 /* ═══ Berths ═════════════════════════════════════════════════════════════ */
 
 .berth-grid { display: grid; gap: 12px; }

@@ -215,6 +215,33 @@ def _conditions(doc: dict, waypoints: dict, hours: int = 72, step: int = 6) -> l
     return out
 
 
+def _trim_rehearsal(doc: dict) -> dict:
+    """The dry run of the real legs against the next few days' weather."""
+    r = doc.get("rehearsal") or {}
+    if not r.get("available"):
+        return {"available": False}
+    return {
+        "available": True,
+        "what_this_is": r.get("note"),
+        "legs": [
+            {"leg": l["label"], "sailed_on": l["date"], "real_trip_date": l.get("real_date"),
+             "verdict": l.get("verdict"), "depart": l.get("recommended_window"),
+             "deteriorates_after": l.get("deteriorates_after"),
+             "wind_kt": (l["windows"][0] or {}).get("max_wind_kt") if l.get("windows") else None,
+             "point_of_sail": (l["windows"][0] or {}).get("point_of_sail") if l.get("windows") else None,
+             "reasons": (l["windows"][0] or {}).get("reasons") if l.get("windows") else None}
+            for l in (r.get("legs") or [])
+        ],
+        "berths": [
+            {"port": b["port"], "night_of": b["date"], "recommended": b.get("recommended_name"),
+             "choice_matters": b.get("choice_matters"),
+             "options": [{"name": o["name"], "verdict": o["verdict"], "score": o["score"],
+                          "reason": o["reason"]} for o in b.get("options", [])]}
+            for b in (r.get("berths") or [])
+        ],
+    }
+
+
 def build_payload(doc: dict, itinerary: dict, waypoints: dict | None = None) -> dict:
     """The facts Claude is allowed to write about."""
     today = dt.date.fromisoformat(doc["generated_at"][:10])
@@ -247,6 +274,8 @@ def build_payload(doc: dict, itinerary: dict, waypoints: dict | None = None) -> 
         ],
         "legs": legs[:8],
         "berths": berths[:8],
+        "rehearsal": _trim_rehearsal(doc),
+        "forecast_stability": doc.get("verification"),
         "current_conditions": _conditions(doc, waypoints),
         "current_conditions_note":
             "Consensus across every model with data at that hour, sampled every "

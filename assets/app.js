@@ -70,6 +70,8 @@
     renderNow();
     renderBriefing();
     renderLegs();
+    renderRehearsal();
+    renderStability();
     renderBerths();
 
     // These modules declare `const ORYCMap` / `const ORYCCharts` at the top
@@ -402,6 +404,88 @@
         (leg.arrive_by ? `<span>Arrive by <strong>${esc(leg.arrive_by)}</strong></span>` : '') +
         (leg.distance_warning ? `<span style="color:var(--caution)">▲ ${esc(leg.distance_warning)}</span>` : '') +
       `</div></div>`;
+  }
+
+  // --- daily rehearsal ------------------------------------------------------
+  // Proves the analysis runs, every day, on real numbers - long before the
+  // trip dates come inside any model's horizon.
+
+  function renderRehearsal() {
+    const r = state.weather.rehearsal;
+    if (!r || !r.available) return;
+
+    const legs = (r.legs || []).map(l => {
+      const w = (l.windows || [])[0] || {};
+      return `<div class="reh-leg">` +
+        `<span class="lab">${esc(l.label.replace(' (optional)', '').replace(' (optional return)', ''))}</span>` +
+        `${chip(l.verdict)}` +
+        `<span class="det">` +
+          `<span>sailed ${esc(dayLabel(l.date))}</span>` +
+          `<span>depart ${esc(l.recommended_window || '-')}</span>` +
+          `<span>${num(w.max_wind_kt)}–${num(w.max_gust_kt)} kt ${esc(w.wind_dir_label || '')}</span>` +
+          `<span>${esc(w.point_of_sail || '')}</span>` +
+          (l.deteriorates_after ? `<span>worse after ${esc(l.deteriorates_after)}</span>` : '') +
+        `</span></div>`;
+    }).join('');
+
+    const berths = (r.berths || []).map(b => {
+      const best = (b.options || []).slice().sort((x, y) => (y.score || 0) - (x.score || 0))[0];
+      if (!best) return '';
+      return `<div class="reh-leg">` +
+        `<span class="lab">${esc(b.port)}</span>${chip(best.verdict)}` +
+        `<span class="det"><span>night of ${esc(dayLabel(b.date))}</span>` +
+        `<span>picks ${esc(best.name)}</span>` +
+        `<span>${esc(best.reason)}</span></span></div>`;
+    }).join('');
+
+    $('rehearsal-body').innerHTML =
+      (legs ? `<div class="card"><div class="leg-head"><h3>Passages</h3></div>${legs}</div>` : '') +
+      (berths ? `<div class="card"><div class="leg-head"><h3>Berths</h3></div>${berths}</div>` : '');
+    $('rehearsal').hidden = false;
+  }
+
+  // --- forecast stability ---------------------------------------------------
+
+  function renderStability() {
+    const v = state.weather.verification;
+    const body = $('stability-body');
+    if (!v) return;
+
+    if (!v.available) {
+      body.innerHTML = `<div class="card card-pad"><p class="small muted" style="margin:0">` +
+        `${esc(v.reason || 'Not enough archived runs yet.')}</p></div>`;
+      $('stability').hidden = false;
+      return;
+    }
+
+    const max = Math.max(...v.by_lead_time.map(b => b.mean_wind_shift_kt), 1);
+    const rows = v.by_lead_time.map(b =>
+      `<tr><td>${esc(b.lead)}</td>` +
+      `<td>${num(b.mean_wind_shift_kt, 1)} kt` +
+      `<i class="stab-bar" style="width:${Math.round(b.mean_wind_shift_kt / max * 70)}px"></i></td>` +
+      `<td>${num(b.max_wind_shift_kt, 1)} kt</td>` +
+      `<td>${b.mean_dir_shift_deg == null ? '–' : num(b.mean_dir_shift_deg) + '°'}</td>` +
+      `<td class="muted">${num(b.samples)}</td></tr>`).join('');
+
+    body.innerHTML =
+      `<div class="card">` +
+        `<div class="card-pad" style="padding-bottom:4px">` +
+          `<p class="small" style="margin:0 0 4px">How far a forecast for a given hour ` +
+          `typically moved between model cycles, by how far ahead it was made. ` +
+          `Smaller means the guidance is settling down.</p>` +
+          `<p class="tiny muted" style="margin:0">` +
+          `<strong>This is stability, not accuracy.</strong> The reference is the newest ` +
+          `model run for the same hour, not an observation — a forecast can be perfectly ` +
+          `stable and still wrong. Built from ${num(v.snapshots_compared)} archived runs ` +
+          `since ${esc(v.oldest_run || '')}` +
+          (v.runs_skipped_same_cycle ? `; ${num(v.runs_skipped_same_cycle)} run(s) skipped for ` +
+            `sharing a model cycle with the current one` : '') + `.</p></div>` +
+        `<div style="overflow-x:auto"><table class="stab"><thead><tr>` +
+          `<th>Made this far ahead</th><th>Mean wind shift</th><th>Largest</th>` +
+          `<th>Mean dir shift</th><th>Samples</th>` +
+        `</tr></thead><tbody>${rows}</tbody></table></div>` +
+      `</div>`;
+    $('stability').hidden = false;
   }
 
   // --- berths --------------------------------------------------------------

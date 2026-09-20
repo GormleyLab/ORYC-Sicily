@@ -430,6 +430,56 @@ def chart_series(atmo: dict, marine: dict) -> dict:
 
 # --- main -------------------------------------------------------------------
 
+def build_rehearsal(legs, itinerary, moorings, atmo, marine, horizon) -> dict:
+    """Run the real legs and berths against live weather, dated to now.
+
+    Until the trip dates come inside the forecast horizon the passage planner
+    has nothing to show, so there is no way to tell whether the analysis is
+    working. This re-dates each leg into the current window and runs exactly
+    the same code, which means every pre-trip day exercises the machinery the
+    fleet will depend on, against real numbers.
+
+    It is a dry run of the analysis, not a forecast for the trip, and the page
+    says so.
+    """
+    today = dt.datetime.now(TZ).date()
+    horizon_days = sorted({h[:10] for h in horizon})
+    if not horizon_days:
+        return {"available": False}
+
+    out_legs, out_berths = [], []
+    # Leg 1 tomorrow, leg 2 the day after, and so on, as far as the models reach.
+    for offset, leg in enumerate(legs, start=1):
+        target = today + dt.timedelta(days=offset)
+        if target.isoformat() not in horizon_days:
+            break
+        shifted = dict(leg, date=target.isoformat())
+        planned = plan_leg(shifted, moorings, atmo, marine, horizon)
+        if planned.get("status") != "forecast":
+            continue
+        planned["real_date"] = leg["date"]
+        out_legs.append(planned)
+
+    for offset, day in enumerate(itinerary["days"], start=0):
+        target = today + dt.timedelta(days=offset)
+        if target.isoformat() not in horizon_days:
+            break
+        shifted = dict(day, date=target.isoformat())
+        berth = plan_berths(shifted, moorings, atmo, marine, horizon)
+        if berth and berth.get("status") == "forecast":
+            berth["real_date"] = day["date"]
+            out_berths.append(berth)
+
+    return {
+        "available": bool(out_legs or out_berths),
+        "note": "A dry run: the real legs and berths scored against the next few "
+                "days' live weather, so the analysis can be checked before the "
+                "trip dates come into range. These are NOT forecasts for the trip.",
+        "legs": out_legs,
+        "berths": out_berths[:8],
+    }
+
+
 def build(no_briefing: bool = False) -> dict:
     global DATE_SHIFT
     itinerary = load("itinerary.json")
@@ -490,9 +540,16 @@ def build(no_briefing: bool = False) -> dict:
         "legs": planned,
         "berths": berths,
         "series": chart_series(atmo, marine),
+        "rehearsal": build_rehearsal(legs, itinerary, moorings, atmo, marine, horizon),
         "horizon_end": max(horizon) if horizon else None,
         "briefing": None,
     }
+
+    try:
+        import verification
+        doc["verification"] = verification.build(doc, moorings)
+    except Exception as e:                     # never block the numbers
+        doc["verification"] = {"available": False, "reason": f"{type(e).__name__}: {e}"}
 
     if not no_briefing:
         try:
@@ -576,6 +633,16 @@ def main() -> int:
         print(f"  {m['short']:8} {status:14} age {m.get('age_hours', '-')}h")
     ready = [l for l in doc["legs"] if l["status"] == "forecast"]
     print(f"  legs with forecast: {len(ready)}/{len(doc['legs'])}")
+    reh = doc.get("rehearsal") or {}
+    if reh.get("available"):
+        print(f"  rehearsal: {len(reh['legs'])} legs, {len(reh['berths'])} berths "
+              f"scored against live weather")
+    ver = doc.get("verification") or {}
+    if ver.get("available"):
+        print(f"  stability: {ver['points_compared']:,} points across "
+              f"{ver['snapshots_compared']} earlier runs")
+    else:
+        print(f"  stability: {ver.get('reason','n/a')[:60]}")
     for l in ready:
         print(f"    {l['label'][:34]:34} {l.get('verdict','-'):8} "
               f"depart {l.get('recommended_window','-')}")

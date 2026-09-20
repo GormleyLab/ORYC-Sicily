@@ -166,6 +166,10 @@ setImmediate(() => {
     'berths-body': hasBerths ? ['open ', 'swell'] : ['Beyond the forecast horizon'],
     'itinerary-body': ['Portorosa', 'Lipari', 'Stromboli', 'Salina', 'Filicudi'],
     'notes-body': ['Dining', 'Moorings'],
+    // Pre-trip these two carry the whole value of the page, so they must not
+    // silently render empty.
+    'rehearsal-body': ['Passages'],
+    'stability-body': ['stability'],
     'briefing-body': [],
   };
 
@@ -227,6 +231,25 @@ setImmediate(() => {
   // The map and charts must actually have been initialised. `const ORYCMap`
   // at the top level of a classic script is a global lexical binding, not a
   // property of `window`, so a `window.ORYCMap` guard silently skips both.
+  // Pre-trip these two sections carry the whole value of the page.
+  console.log('\nChecking the pre-trip value sections…');
+  const reh = weather.rehearsal || {};
+  if (reh.available) {
+    const n = (reh.legs || []).length, m = (reh.berths || []).length;
+    if (!n && !m) fail('rehearsal flagged available but carries no legs or berths');
+    else ok(`rehearsal: ${n} legs, ${m} berths`);
+    if (n && !html('rehearsal-body').includes(escFn(reh.legs[0].label.split(' (')[0])))
+      fail('first rehearsal leg missing from the page');
+  } else { ok('rehearsal not available this run (reported, not blank)'); }
+
+  const ver = weather.verification || {};
+  if (ver.available) {
+    ok(`stability: ${ver.points_compared} points, ${ver.by_lead_time.length} lead buckets`);
+    if (!html('stability-body').includes('stability, not accuracy'))
+      fail('stability table missing the stability-not-accuracy caveat');
+  } else { ok('stability not available yet (reason shown, not a blank table)'); }
+
+
   console.log('\nChecking map and chart initialisation…');
   if (!calls.mapInit) fail('ORYCMap.init never ran — the map would not render');
   else ok(`map initialised (${calls.tiles} tile layer, ${calls.polylines} legs, ${calls.markers} markers)`);
