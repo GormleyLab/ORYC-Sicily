@@ -47,7 +47,6 @@ const ORYCCharts = (() => {
     Chart.defaults.font.size = 11;
 
     const tabs = document.getElementById('chart-tabs');
-    const moorings = (window.__WAYPOINTS__ && window.__WAYPOINTS__.moorings) || {};
     tabs.innerHTML = ids.map(id =>
       `<button type="button" data-loc="${esc(id)}" aria-pressed="false">` +
       `${esc(series[id].name)}</button>`).join('');
@@ -58,6 +57,8 @@ const ORYCCharts = (() => {
     });
 
     select(defaultLocation(ids));
+    watchSize();
+    nudge();
   }
 
   function defaultLocation(ids) {
@@ -74,10 +75,51 @@ const ORYCCharts = (() => {
     drawWind(id);
     drawSea(id);
     drawBarbs(id);
+    nudge();
   }
 
   /** Redraw in the current theme's colours. */
   function refresh() { if (current) select(current); }
+
+  /* Chart.js sizes a canvas from its container at construction time. If the
+     container has no width yet - fonts still loading, the section not laid
+     out, the page inside an iframe that has not been given a width - the
+     canvas is created 0px wide and never recovers on its own, so the chart
+     is silently invisible with no error logged.
+
+     Watch the container and resize whenever it gains width. Cheap, and it
+     removes a whole class of "the charts are blank" failures. */
+  let observer = null;
+  function watchSize() {
+    if (observer || typeof ResizeObserver === 'undefined') return;
+    const box = document.getElementById('wind-chart');
+    if (!box || !box.parentElement) return;
+    observer = new ResizeObserver(() => {
+      [windChart, seaChart].forEach(ch => {
+        if (!ch) return;
+        const el = ch.canvas;
+        if (el && el.parentElement && el.parentElement.clientWidth > 0
+            && el.width !== el.parentElement.clientWidth) {
+          ch.resize();
+        }
+      });
+    });
+    observer.observe(box.parentElement.parentElement || box.parentElement);
+  }
+
+  /** Belt and braces for the zero-width case: nudge after layout settles and
+      again once web fonts have swapped in. */
+  function nudge() {
+    const go = () => {
+      try { [windChart, seaChart].forEach(ch => ch && ch.resize()); } catch (e) {}
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(go);
+    setTimeout(go, 250);
+    setTimeout(go, 1200);
+    try {
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
+    } catch (e) {}
+  }
 
   function labels(times) {
     return times.map(t => {

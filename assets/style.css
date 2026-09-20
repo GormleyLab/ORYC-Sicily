@@ -531,11 +531,31 @@ section { margin-bottom: 30px; scroll-margin-top: 12px; }
 
 #map-canvas { height: 300px; border-radius: var(--r); border: 1px solid var(--hair); z-index: 0; }
 @media (min-width: 720px) { #map-canvas { height: 440px; } }
-:root[data-theme="night"] #map-canvas,
-:root[data-theme="dark"] #map-canvas { filter: invert(1) hue-rotate(180deg) brightness(.85); }
+/* Darken only the raster tiles. Filtering the whole map pane also inverted
+   the route lines, mooring markers and wind arrows, which are already
+   theme-coloured. */
+:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85); }
+:root[data-theme="night"] .leaflet-tile-pane { filter: invert(1) grayscale(1) sepia(1) saturate(5) hue-rotate(-28deg) brightness(.5); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #map-canvas { filter: invert(1) hue-rotate(180deg) brightness(.85); }
+  :root:not([data-theme="light"]):not([data-theme="night"]) .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(.85);
+  }
 }
+
+.map-notice {
+  font-size: .78rem; color: var(--caution); background: var(--caution-bg);
+  border: 1px solid var(--caution-line); border-radius: var(--r-sm);
+  padding: 8px 11px; margin: 9px 0 0;
+}
+/* Without tiles the pane is a flat void; a faint grid reads as a chart
+   background and keeps the vectors legible. */
+#map-canvas.no-tiles {
+  background-image: linear-gradient(var(--hair-soft) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--hair-soft) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-color: var(--surface-sunk);
+}
+#map-canvas.no-tiles .leaflet-tile-pane { display: none; }
 
 .map-ctl { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; margin-top: 10px; }
 .map-ctl input[type=range] { flex: 1 1 180px; accent-color: var(--navy); min-height: 28px; }
@@ -545,7 +565,17 @@ section { margin-bottom: 30px; scroll-margin-top: 12px; }
 .legend span { display: inline-flex; align-items: center; gap: 4px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .leaflet-container { font: inherit; }
-.wind-arrow { color: var(--navy); }
+.wind-pin { text-align: center; }
+.wind-arrow { color: var(--navy); display: flex; justify-content: center; }
+:root[data-theme="dark"] .wind-arrow, :root[data-theme="night"] .wind-arrow { color: var(--accent); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wind-arrow { color: var(--accent); }
+}
+.wind-kt {
+  font-family: var(--mono); font-size: 10px; font-weight: 600; line-height: 1;
+  text-align: center; color: var(--ink);
+  text-shadow: 0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 3px var(--surface);
+}
 
 /* ═══ Charts ═════════════════════════════════════════════════════════════ */
 
@@ -560,7 +590,7 @@ section { margin-bottom: 30px; scroll-margin-top: 12px; }
 .tabs button[aria-pressed=true] { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 600; }
 :root[data-theme="night"] .tabs button[aria-pressed=true] { background: var(--nogo-bg); border-color: var(--accent); color: var(--accent); }
 
-.chart-box { position: relative; height: 230px; }
+.chart-box { position: relative; height: 230px; width: 100%; min-width: 0; }
 @media (min-width: 720px) { .chart-box { height: 290px; } }
 .chart-box + .chart-box { margin-top: 16px; }
 

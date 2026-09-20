@@ -26,6 +26,7 @@ const ok = (msg) => console.log(`  ok    ${msg}`);
 function makeEl(id) {
   return {
     id, innerHTML: '', textContent: '', hidden: false, dataset: {},
+    value: 0, min: 0, max: 0, style: {}, ctx: {},
     classList: { add() {}, remove() {}, toggle: () => false },
     setAttribute() {}, getAttribute() { return null; },
     addEventListener() {},
@@ -33,6 +34,36 @@ function makeEl(id) {
     closest: () => null,
     parentElement: { hidden: false },
   };
+}
+
+const calls = { mapInit: 0, charts: 0, layers: 0, markers: 0, polylines: 0, tiles: 0 };
+
+function makeLeafletStub() {
+  const chain = () => {
+    const o = {
+      addTo: () => o, bindPopup: () => o, setView: () => o,
+      on: () => o, clearLayers: () => o, addLayer: () => o, remove: () => o,
+    };
+    return o;
+  };
+  return {
+    map: () => { calls.mapInit++; return Object.assign(chain(), {
+      fitBounds: () => {}, invalidateSize: () => {}, getBounds: () => ({}),
+      scales: {},
+    }); },
+    tileLayer: () => { calls.tiles++; return chain(); },
+    polyline: () => { calls.polylines++; return chain(); },
+    circleMarker: () => { calls.markers++; return chain(); },
+    marker: () => { calls.markers++; return chain(); },
+    layerGroup: () => { calls.layers++; return chain(); },
+    divIcon: () => ({}),
+  };
+}
+
+function makeChartStub() {
+  function Chart() { calls.charts++; this.destroy = () => {}; }
+  Chart.defaults = { font: {}, color: '' };
+  return Chart;
 }
 
 const elements = new Map();
@@ -43,6 +74,7 @@ const document = {
   },
   querySelectorAll: () => [],
   body: {},
+  documentElement: { getAttribute: () => null, setAttribute() {}, removeAttribute() {} },
   addEventListener() {},
 };
 
@@ -60,12 +92,14 @@ const sandbox = {
   console,
   document,
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-  window: {},
-  getComputedStyle: () => ({ fontFamily: 'sans-serif' }),
+  // charts.js reads theme tokens through getPropertyValue; a stub without it
+  // threw inside init and the charts silently never drew.
+  getComputedStyle: () => ({ fontFamily: 'sans-serif', getPropertyValue: () => '#000' }),
   fetch: (p) => Promise.resolve({
     ok: true, status: 200, json: () => Promise.resolve(FILES[p]),
   }),
   setTimeout: (fn) => fn(),
+  requestAnimationFrame: (fn) => fn(),
   Date,
   Math,
   JSON,
@@ -75,10 +109,17 @@ const sandbox = {
   Array,
   Promise,
   isNaN,
-  L: undefined,        // Leaflet absent - map.js must no-op, not throw
-  Chart: undefined,    // Chart.js absent - charts.js must no-op, not throw
+  // Recording stubs rather than `undefined`. With the libraries absent both
+  // modules no-opped, so the test could not have caught the map and charts
+  // never being initialised at all.
+  L: makeLeafletStub(),
+  Chart: makeChartStub(),
 };
+// In a browser `window === globalThis`, and UMD libraries assign themselves
+// onto it. Stubbing `window` as a bare {} meant `window.L` / `window.Chart`
+// were undefined and both modules returned early.
 sandbox.globalThis = sandbox;
+sandbox.window = sandbox;
 vm.createContext(sandbox);
 
 // --- load ------------------------------------------------------------------
@@ -92,9 +133,6 @@ for (const f of ['assets/sailing.js', 'assets/map.js', 'assets/charts.js']) {
     fail(`${f} threw on load: ${e.message}`);
   }
 }
-sandbox.window.ORYCMap = sandbox.ORYCMap;
-sandbox.window.ORYCCharts = sandbox.ORYCCharts;
-
 try {
   vm.runInContext(read('assets/app.js'), sandbox, { filename: 'assets/app.js' });
   ok('loaded assets/app.js');
@@ -185,6 +223,15 @@ setImmediate(() => {
   if (!windyLinks.length) fail('no Windy deep links rendered');
   else if (badWindy.length) fail(`malformed Windy links: ${badWindy.slice(0, 2).join(' ')}`);
   else ok(`${windyLinks.length} Windy deep links well-formed (e.g. ${windyLinks[0]})`);
+
+  // The map and charts must actually have been initialised. `const ORYCMap`
+  // at the top level of a classic script is a global lexical binding, not a
+  // property of `window`, so a `window.ORYCMap` guard silently skips both.
+  console.log('\nChecking map and chart initialisation…');
+  if (!calls.mapInit) fail('ORYCMap.init never ran — the map would not render');
+  else ok(`map initialised (${calls.tiles} tile layer, ${calls.polylines} legs, ${calls.markers} markers)`);
+  if (!calls.charts) fail('ORYCCharts.init never ran — no charts would render');
+  else ok(`${calls.charts} charts constructed`);
 
   // Escaping must be real, not decorative.
   const evil = escFn('<img src=x onerror=alert(1)>');

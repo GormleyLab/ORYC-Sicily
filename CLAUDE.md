@@ -91,6 +91,24 @@ the page says so.
   read 16.5 kt at Filicudi where IFS and AIFS both said ~6 kt. A bare headline
   number from one model is misleading, so the cards average every available
   model and print the range when the spread exceeds 8 kt.
+* **`const Foo` at the top of a classic script is NOT `window.Foo`.** It is a
+  global *lexical* binding. `if (window.ORYCMap)` was therefore always false
+  and the map and charts never initialised at all. Guard with
+  `typeof ORYCMap !== 'undefined'`. `test_render.js` now asserts both actually
+  run - its earlier `sandbox.window.ORYCMap = ...` line was itself a no-op and
+  hid the bug.
+* **A Chart.js canvas built in a zero-width container stays zero-width
+  forever** - no error, no console output, just a blank chart. Fonts still
+  loading or a section not yet laid out is enough to trigger it. `charts.js`
+  keeps a ResizeObserver and nudges `resize()` after layout and after
+  `document.fonts.ready`. A node render test cannot catch this: there is no
+  layout. It has to be checked in a browser.
+* **Map tiles are the only thing needing the network at view time.** Leaflet
+  fires `tileerror`; the page then swaps in a grid background and says the
+  route and moorings are still accurate, rather than showing an empty box.
+* **The map's dark filter must target `.leaflet-tile-pane`,** not
+  `#map-canvas` - filtering the whole pane inverted the route lines, markers
+  and wind arrows too.
 * **Wind arrows are inline SVG, not rotated text glyphs.** A rotated "↑" sat
   off its baseline and read as a stray tick mark at small sizes.
 * **Point of sail must not say "no-go"** — it collided with the safety verdict

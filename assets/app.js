@@ -32,7 +32,7 @@
           else localStorage.removeItem('oryc-theme');
         } catch (e) {}
         mark(next);
-        if (window.ORYCCharts) ORYCCharts.refresh();
+        if (typeof ORYCCharts !== 'undefined') ORYCCharts.refresh();
       });
     });
   }
@@ -72,12 +72,40 @@
     renderLegs();
     renderBerths();
 
-    if (window.ORYCMap) ORYCMap.init(weather, waypoints);
-    if (window.ORYCCharts) ORYCCharts.init(weather);
+    // These modules declare `const ORYCMap` / `const ORYCCharts` at the top
+    // level of a classic script, which creates a global lexical binding - NOT
+    // a property of `window`. Guarding on `window.ORYCMap` silently skipped
+    // both, so the map and the charts never rendered at all.
+    // The map and charts are presentation. If either fails, the briefing,
+    // passage calls, berth rankings and every number above must still stand -
+    // the same rule the AI briefing follows.
+    try {
+      if (typeof ORYCMap !== 'undefined') ORYCMap.init(weather, waypoints);
+    } catch (e) {
+      console.error('map failed to initialise', e);
+      hideSection('map', 'The route map could not be drawn.');
+    }
+    try {
+      if (typeof ORYCCharts !== 'undefined') ORYCCharts.init(weather);
+    } catch (e) {
+      console.error('charts failed to initialise', e);
+      hideSection('charts', 'The wind and sea charts could not be drawn.');
+    }
   }).catch(err => {
     console.error(err);
     $('status-line').innerHTML = '<b>Could not load site data.</b> ' + esc(err.message);
   });
+
+  /** Replace a failed visual section with an honest note rather than leaving
+   *  an empty box that reads as a broken page. */
+  function hideSection(id, message) {
+    const el = $(id);
+    if (!el) return;
+    const head = el.querySelector('.sec-head');
+    el.innerHTML = (head ? head.outerHTML : '') +
+      `<div class="card card-pad"><p class="small muted" style="margin:0">` +
+      `${esc(message)} Every figure elsewhere on this page is unaffected.</p></div>`;
+  }
 
   function fetchJson(path) {
     return fetch(path, { cache: 'no-cache' })

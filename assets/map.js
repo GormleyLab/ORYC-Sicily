@@ -15,10 +15,22 @@ const ORYCMap = (() => {
     map = L.map('map-canvas', { scrollWheelZoom: false })
       .setView([38.52, 14.95], 9);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Tiles are the one part of this page that needs the network at view
+    // time. On a boat with no signal - or anywhere tile requests are blocked -
+    // they simply never arrive, leaving an empty grey box that looks broken.
+    // The route, moorings and wind arrows are all locally drawn vectors and
+    // remain perfectly usable, so say so rather than showing nothing.
+    let tilesFailed = 0, tilesLoaded = 0;
+    const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 17,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    });
+    tiles.on('tileerror', () => { tilesFailed++; if (tilesFailed > 2) noTiles(); });
+    tiles.on('tileload', () => { tilesLoaded++; });
+    tiles.addTo(map);
+    // Belt and braces: if nothing has arrived at all after a few seconds,
+    // treat it as offline even if no error event fired.
+    setTimeout(() => { if (!tilesLoaded) noTiles(); }, 6000);
 
     drawLegs();
     drawMoorings();
@@ -29,6 +41,15 @@ const ORYCMap = (() => {
 
     // The map is inside a section that may still be laying out on first paint.
     setTimeout(() => map.invalidateSize(), 200);
+  }
+
+  let noticeShown = false;
+  function noTiles() {
+    if (noticeShown) return;
+    noticeShown = true;
+    const el = document.getElementById('map-notice');
+    if (el) el.hidden = false;
+    document.getElementById('map-canvas').classList.add('no-tiles');
   }
 
   function drawLegs() {
@@ -148,16 +169,15 @@ const ORYCMap = (() => {
       }
       if (speed === null) return;
 
-      const size = 15 + Math.min(speed, 30) * 0.65;
-      const rot = (dir + 180) % 360;   // arrow flies downwind
+      // Same inline-SVG arrow used elsewhere on the page - a rotated text
+      // glyph sat off its baseline and read as a stray mark.
+      const size = Math.round(15 + Math.min(speed, 30) * 0.65);
       const icon = L.divIcon({
-        className: '',
-        html: `<div class="wind-arrow" style="transform:rotate(${rot}deg);` +
-              `font-size:${size}px;line-height:1;text-align:center">↑</div>` +
-              `<div style="font:600 10px/1 ui-monospace,monospace;text-align:center;` +
-              `color:#14213f;text-shadow:0 0 3px #fff,0 0 3px #fff">${Math.round(speed)}</div>`,
-        iconSize: [size + 12, size + 16],
-        iconAnchor: [(size + 12) / 2, (size + 16) / 2],
+        className: 'wind-pin',
+        html: `<div class="wind-arrow">${ORYC.windArrow(dir, size)}</div>` +
+              `<div class="wind-kt">${Math.round(speed)}</div>`,
+        iconSize: [size + 14, size + 18],
+        iconAnchor: [(size + 14) / 2, (size + 18) / 2],
       });
 
       L.marker([point.lat, point.lon], { icon, interactive: false })
