@@ -98,10 +98,12 @@ const ORYCMap = (() => {
     const moorings = (waypoints && waypoints.moorings) || {};
     Object.entries(moorings).forEach(([id, m]) => {
       const o = latestVerdict(id);
-      const color = o ? shelterColor(o.verdict) : '#23408f';
+      // No verdict yet (before the trip enters the forecast horizon) is its
+      // own state, not a good one - use the same neutral the chips use.
+      const color = o ? shelterColor(o.verdict) : 'var(--none)';
 
       L.circleMarker([m.lat, m.lon], {
-        radius: 7, weight: 2, color: '#fff', fillColor: color, fillOpacity: 0.95,
+        radius: 10, weight: 2.5, color: '#fff', fillColor: color, fillOpacity: 0.95,
       }).addTo(map).bindPopup(
         `<strong>${esc(m.name)}</strong><br><span style="color:#666">${esc(m.island)}</span>` +
         (o ? `<div style="margin-top:5px">${ORYC.chip(o.verdict)}</div>` +
@@ -119,7 +121,7 @@ const ORYCMap = (() => {
     const pois = (waypoints && waypoints.points_of_interest) || {};
     Object.values(pois).forEach(p => {
       L.circleMarker([p.lat, p.lon], {
-        radius: 5, weight: 1.5, color: '#d2232a', fillColor: '#fff', fillOpacity: 1,
+        radius: 7, weight: 2, color: '#d2232a', fillColor: '#fff', fillOpacity: 1,
       }).addTo(map).bindPopup(
         `<strong>${esc(p.name)}</strong><br><span style="color:#666;font-size:.9em">${esc(p.note)}</span>`);
     });
@@ -171,7 +173,7 @@ const ORYCMap = (() => {
 
       // Same inline-SVG arrow used elsewhere on the page - a rotated text
       // glyph sat off its baseline and read as a stray mark.
-      const size = Math.round(15 + Math.min(speed, 30) * 0.65);
+      const size = Math.round(22 + Math.min(speed, 30) * 0.85);
       const icon = L.divIcon({
         className: 'wind-pin',
         html: `<div class="wind-arrow">${ORYC.windArrow(dir, size)}</div>` +

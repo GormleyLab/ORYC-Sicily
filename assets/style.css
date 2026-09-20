@@ -596,7 +596,7 @@ table.stab td:first-child { font-family: var(--sans); }
   :root:not([data-theme="light"]) .wind-arrow { color: var(--accent); }
 }
 .wind-kt {
-  font-family: var(--mono); font-size: 10px; font-weight: 600; line-height: 1;
+  font-family: var(--mono); font-size: 12px; font-weight: 600; line-height: 1;
   text-align: center; color: var(--ink);
   text-shadow: 0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 3px var(--surface);
 }
