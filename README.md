@@ -10,6 +10,17 @@ a marine weather briefing that rebuilds itself on a schedule.
 
 ## What it does
 
+Wind in knots, sea and swell in **feet**, directions in degrees true and
+meteorological (the direction the wind comes *from*). The models publish metres
+and `data/weather.json` stores metres — feet are produced at the point of
+display, so the archived JSON stays directly comparable with the source data.
+
+A **ft / m switch** sits in the masthead beside the theme buttons and is
+remembered per device. It moves the figures only: the skipper's briefing, the
+passage reasons and the pilot-book notes are prose written when the run was
+built and stay in feet, so the status strip carries a caveat while metres are
+showing.
+
 | | |
 |---|---|
 | **Passage planner** | For each of the seven legs: rhumb-line bearing, distance, and wind / gust / wave sampled at departure, midpoint and arrival for every departure hour from 06:00 to 14:00 — with true wind angle, point of sail, Beaufort force, reefing guidance and a go / caution / no-go call. Tells you the best window and when it deteriorates. |

@@ -60,7 +60,7 @@
         180,
         280
       ],
-      "shelter_note": "Open W and south. Anchor towards the N end in 5-10 m.",
+      "shelter_note": "Open W and south. Anchor towards the N end in 16-33 ft (5-10 m).",
       "verified": true,
       "group": "Lipari",
       "position_source": "explicit fallback; already clear",
@@ -82,7 +82,7 @@
       "group": "Panarea",
       "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
       "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
-      "hazard_note": "Cannot anchor within 200 m of the pier; keep clear of the laid moorings. Yachts generally not permitted on the pier."
+      "hazard_note": "Cannot anchor within 650 ft (200 m) of the pier; keep clear of the laid moorings. Yachts generally not permitted on the pier."
     },
     "panarea_drautto": {
       "name": "Drautto buoy field",
@@ -111,7 +111,7 @@
         80,
         190
       ],
-      "shelter_note": "Open E and south. Anchor in 5-10 m on sand, good holding. The pilot treats Baia Milazzese and Cala Zimmari as one anchorage and gives a single waypoint; the itinerary names both.",
+      "shelter_note": "Open E and south. Anchor in 16-33 ft (5-10 m) on sand, good holding. The pilot treats Baia Milazzese and Cala Zimmari as one anchorage and gives a single waypoint; the itinerary names both.",
       "verified": true,
       "group": "Panarea",
       "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
@@ -151,7 +151,7 @@
       "group": "Filicudi",
       "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
       "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
-      "hazard_note": "An old groyne runs about 100 m SE from the ferry mole, just under the surface and hard to see. Bottom stoney with weed; holding not good everywhere."
+      "hazard_note": "An old groyne runs about 330 ft (100 m) SE from the ferry mole, just under the surface and hard to see. Bottom stoney with weed; holding not good everywhere."
     },
     "filicudi_pecorini": {
       "name": "Pecorini a Mare",
@@ -201,7 +201,7 @@
       "group": "Salina",
       "position_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
       "sector_source": "Imray Italian Waters Pilot (Heikell), Isole Eolie pp.371-383",
-      "hazard_note": "Limited anchoring room inside the laid local moorings; space outside them in 15 m+."
+      "hazard_note": "Limited anchoring room inside the laid local moorings; space outside them in 50 ft+ (15 m+)."
     }
   },
   "points_of_interest": {
@@ -210,7 +210,7 @@
       "island": "Stromboli",
       "lat": 38.806,
       "lon": 15.204,
-      "note": "Night viewing position on the NW side - the fleet sails here after dark to watch lava reach the sea. Stand off about 300 m from the foot of the scar.",
+      "note": "Night viewing position on the NW side - the fleet sails here after dark to watch lava reach the sea. Stand off about 1,000 ft (300 m) from the foot of the scar.",
       "verified": false,
       "position_source": "moved into the water off the Sciara; was 38.793,15.201, which is 619 m inland on the volcano's flank"
     },
@@ -228,7 +228,7 @@
       "island": "Filicudi",
       "lat": 38.5824,
       "lon": 14.5213,
-      "note": "71 m volcanic pinnacle rising from the sea off the NW coast.",
+      "note": "233 ft volcanic pinnacle rising from the sea off the NW coast.",
       "verified": false,
       "position_source": "OSM/Wikidata Q3820695 'La Canna' islet; was 38.583,14.527, 500 m E of it"
     },

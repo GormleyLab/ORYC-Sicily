@@ -234,18 +234,29 @@ a { color: var(--navy); }
 .pill-day .n { display: block; font-family: var(--mono); font-size: 1.15rem; font-weight: 600; }
 .pill-day .l { display: block; font-size: .54rem; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
 
-/* Theme switch */
-.theme-switch { display: flex; gap: 2px; background: rgba(255,255,255,.1); border-radius: 100px; padding: 2px; }
-:root[data-theme="night"] .theme-switch { background: var(--surface-sunk); border: 1px solid var(--hair); }
-.theme-switch button {
+/* Theme switch, and the ft/m unit switch beside it - same pill */
+.theme-switch, .unit-switch { display: flex; gap: 2px; background: rgba(255,255,255,.1); border-radius: 100px; padding: 2px; }
+:root[data-theme="night"] .theme-switch,
+:root[data-theme="night"] .unit-switch { background: var(--surface-sunk); border: 1px solid var(--hair); }
+.theme-switch button, .unit-switch button {
   font: inherit; font-size: .9rem; line-height: 1;
   background: none; border: none; cursor: pointer;
   color: inherit; opacity: .55;
   padding: 6px 7px; border-radius: 100px;
   min-width: 30px; min-height: 30px;
 }
-.theme-switch button[aria-pressed="true"] { background: rgba(255,255,255,.2); opacity: 1; }
-:root[data-theme="night"] .theme-switch button[aria-pressed="true"] { background: #1a0303; }
+.theme-switch button[aria-pressed="true"],
+.unit-switch button[aria-pressed="true"] { background: rgba(255,255,255,.2); opacity: 1; }
+:root[data-theme="night"] .theme-switch button[aria-pressed="true"],
+:root[data-theme="night"] .unit-switch button[aria-pressed="true"] { background: #1a0303; }
+
+/* The unit buttons are words, not glyphs, so they need a little more room
+   and a smaller face to sit level with the theme icons. */
+.unit-switch button { font-size: .72rem; font-weight: 600; letter-spacing: .02em; padding: 6px 8px; }
+
+/* Shown in the status strip only while the toggle is on metres and the
+   build-time prose still reads in feet. */
+.unit-note { color: var(--caution); }
 
 /* ═══ Status strip ═══════════════════════════════════════════════════════ */
 
@@ -719,7 +730,7 @@ footer .fine { opacity: .7; }
           --brand-bg: #fff; --brand-ink: #111; }
   body { font-size: 10pt; }
   .masthead { border-bottom-width: 2px; }
-  .theme-switch, #map, #charts, .tabs, .map-ctl, .more, .windy, .disclose { display: none !important; }
+  .theme-switch, .unit-switch, #map, #charts, .tabs, .map-ctl, .more, .windy, .disclose { display: none !important; }
   .card, .leg, .berth, .day { break-inside: avoid; box-shadow: none; }
   section { margin-bottom: 14px; }
   .day .prose.clipped { max-height: none; mask-image: none; -webkit-mask-image: none; }

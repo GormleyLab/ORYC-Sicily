@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  const { esc, chip, windArrow, num, windyLink, dayLabel, hourLabel,
+  const { esc, chip, windArrow, num, height, units, windyLink, dayLabel, hourLabel,
           ago, verdictClass, compass, shelterColor, nowIndex } = ORYC;
 
   const $ = id => document.getElementById(id);
@@ -42,6 +42,60 @@
       b.setAttribute('aria-pressed', String(b.dataset.themeSet === active)));
   }
 
+  // --- units ---------------------------------------------------------------
+  // Feet or metres, numbers only. The stored data is metric and every figure
+  // on the page is converted at render time, so switching is just a re-render
+  // - there is no second copy of the data to keep in step.
+
+  function initUnits() {
+    markUnits();
+    document.querySelectorAll('[data-unit-set]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.unitSet === ORYC.units()) return;
+        ORYC.setUnits(btn.dataset.unitSet);
+        markUnits();
+        renderAll();
+        if (typeof ORYCCharts !== 'undefined') ORYCCharts.refresh();
+      });
+    });
+  }
+
+  function markUnits() {
+    document.querySelectorAll('[data-unit-set]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.unitSet === ORYC.units())));
+  }
+
+  /** Re-run every weather section. The render functions all read from `state`
+   *  and rewrite their own innerHTML, re-attaching their own listeners, so
+   *  this is safe to call repeatedly - but an open "Hour-by-hour" panel is
+   *  rebuilt collapsed, so its state is carried across by hand. */
+  function renderAll() {
+    if (!state.weather) return;
+
+    const open = [];
+    document.querySelectorAll('.hours').forEach(el => {
+      if (!el.hidden) open.push(el.id);
+    });
+
+    renderStatus();
+    renderPill();
+    renderNow();
+    renderBriefing();
+    renderLegs();
+    renderRehearsal();
+    renderStability();
+    renderBerths();
+
+    open.forEach(id => {
+      const box = $(id);
+      if (box) box.hidden = false;
+      document.querySelectorAll(`[data-hours="${id}"]`).forEach(btn => {
+        btn.setAttribute('aria-expanded', 'true');
+        btn.textContent = 'Hide hour-by-hour';
+      });
+    });
+  }
+
   // --- boot ----------------------------------------------------------------
 
   initTheme();
@@ -65,14 +119,8 @@
       return;
     }
 
-    renderStatus();
-    renderPill();
-    renderNow();
-    renderBriefing();
-    renderLegs();
-    renderRehearsal();
-    renderStability();
-    renderBerths();
+    renderAll();
+    initUnits();
 
     // These modules declare `const ORYCMap` / `const ORYCCharts` at the top
     // level of a classic script, which creates a global lexical binding - NOT
@@ -133,6 +181,10 @@
       `<span>Updated <b>${esc(ago(w.generated_at_utc || w.generated_at))}</b></span>` +
       `<span>·</span><span><b>${okCount}</b> of ${(w.models || []).length} models</span>` +
       (w.horizon_end ? `<span>·</span><span>reaches <b>${esc(dayLabel(w.horizon_end))}</b></span>` : '') +
+      // Only the numbers follow the ft/m toggle. The briefing and the
+      // pilot-book notes are prose written at build time and stay in feet, so
+      // say so here rather than let a skipper trip over it mid-sentence.
+      (ORYC.unitNote() ? `<span>·</span><span class="unit-note">${esc(ORYC.unitNote())}</span>` : '') +
       `<button class="disclose" id="model-toggle" aria-expanded="false">model runs</button>`;
 
     $('model-grid').innerHTML = (w.models || []).map(m => {
@@ -236,7 +288,7 @@
           `<div class="ws">${num(mean)}<small>kt</small></div>` +
           `<div class="wd">${windArrow(dir, 12)} ${esc(compass(dir))}</div>` +
           disagree +
-          (wave != null ? `<div class="sea">sea ${num(wave, 1)} m</div>` : '') +
+          (wave != null ? `<div class="sea">sea ${height(wave)} ${units()}</div>` : '') +
         `</div>`);
     });
 
@@ -340,7 +392,7 @@
       `<div class="keynums">` +
         `<div><div class="k">Wind</div><div class="v">${num(best.max_wind_kt)}<small>kt</small></div></div>` +
         `<div><div class="k">Gust</div><div class="v">${num(best.max_gust_kt)}<small>kt</small></div></div>` +
-        `<div><div class="k">Sea</div><div class="v">${best.max_wave_m == null ? '–' : num(best.max_wave_m, 1)}<small>m</small></div></div>` +
+        `<div><div class="k">Sea</div><div class="v">${height(best.max_wave_m)}<small>${units()}</small></div></div>` +
         `<div><div class="k">From</div><div class="v">${windArrow(best.wind_dir, 13)}${esc(best.wind_dir_label)}</div></div>` +
         `<div><div class="k">TWA</div><div class="v">${best.twa == null ? '–' : num(best.twa) + '°'}</div></div>` +
         `<div><div class="k">Force</div><div class="v">${num(best.beaufort.force)}</div></div>` +
@@ -361,7 +413,7 @@
         `<span class="d">` +
           `<span class="nw">${num(w.max_wind_kt)}–${num(w.max_gust_kt)} kt</span>` +
           `<span class="nw">${windArrow(w.wind_dir, 11)} ${esc(w.wind_dir_label)}</span>` +
-          `<span class="nw">${w.max_wave_m == null ? '–' : num(w.max_wave_m, 1)} m</span>` +
+          `<span class="nw">${height(w.max_wave_m)} ${units()}</span>` +
           `<span class="nw">${esc(w.point_of_sail)}</span>` +
         `</span>` +
         `${chip(w.verdict)}</div>`;
@@ -375,7 +427,7 @@
         `<td class="num">${num(w.max_wind_kt)}</td>` +
         `<td class="num">${num(w.max_gust_kt)}</td>` +
         `<td>${windArrow(w.wind_dir, 12)} ${esc(w.wind_dir_label)}</td>` +
-        `<td class="num">${w.max_wave_m == null ? '–' : num(w.max_wave_m, 1)}</td>` +
+        `<td class="num">${height(w.max_wave_m)}</td>` +
         `<td class="num">${w.twa == null ? '–' : num(w.twa) + '°'}</td>` +
         `<td class="pos">${esc(w.point_of_sail)}</td>` +
         `<td>${chip(w.verdict)}</td></tr>`;
@@ -386,7 +438,7 @@
         `<div class="only-phone">${rows}</div>` +
         `<table class="hours-table only-wide"><thead><tr>` +
           `<th>Depart</th><th>Arrive</th><th>Wind</th><th>Gust</th><th>From</th>` +
-          `<th>Sea m</th><th>TWA</th><th>Point of sail</th><th>Call</th>` +
+          `<th>Sea ${units()}</th><th>TWA</th><th>Point of sail</th><th>Call</th>` +
         `</tr></thead><tbody>${tableRows}</tbody></table>` +
       `</div>`;
 
@@ -530,7 +582,7 @@
         `<div class="nums">` +
           `<span>${windArrow(o.wind_dir, 11)} ${num(o.wind_kt)} kt ${esc(o.wind_dir_label || '')}</span>` +
           `<span>gust ${num(o.gust_kt)}</span>` +
-          `<span>swell ${num(o.swell_m, 1)} m</span>` +
+          `<span>swell ${height(o.swell_m)} ${units()}</span>` +
           `<span>${esc(sector)}</span>` +
         `</div>` +
         (o.no_anchoring ? `<div class="warn">▲ Do not anchor — rocky. Buoys only.</div>` : '') +

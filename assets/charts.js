@@ -8,6 +8,16 @@ const ORYCCharts = (() => {
 
   const { esc, dayLabel, hourLabel, compass, MODEL_COLOR, nowIndex } = ORYC;
 
+  /** weather.json stores sea state in metres; the page shows whichever unit
+   *  the header toggle is on. Converted here, where the series enters the
+   *  chart, so the axis, the tooltip and the threshold lines all move
+   *  together. Rounded because the tooltip prints the plotted value as-is.
+   *  Called at draw time, never cached - `refresh()` redraws on a switch. */
+  const conv = m => {
+    const v = ORYC.toDisplay(m);
+    return v == null ? null : Math.round(v * 10) / 10;
+  };
+
   let weather = null, windChart = null, seaChart = null, current = null;
 
   const MODEL_LABEL = {
@@ -233,20 +243,21 @@ const ORYCCharts = (() => {
 
     const s = p.sea.series;
     const night = isNight();
+    const unit = ORYC.units();
     const datasets = [
-      { label: 'Total wave', data: s.wave_height,
+      { label: 'Total wave', data: (s.wave_height || []).map(conv),
         borderColor: night ? cssVar('--ink') : cssVar('--navy'),
         backgroundColor: 'transparent', fill: false },
-      { label: 'Swell', data: s.swell_wave_height,
+      { label: 'Swell', data: (s.swell_wave_height || []).map(conv),
         borderColor: night ? cssVar('--ink-mid') : cssVar('--go'),
         backgroundColor: 'transparent', borderDash: [5, 3] },
-      { label: '1.25 m', data: p.time.map(() => 1.25),
+      { label: `${conv(1.25)} ${unit}`, data: p.time.map(() => conv(1.25)),
         borderColor: cssVar('--caution-line'), borderWidth: 1, borderDash: [2, 5], pointRadius: 0 },
-      { label: '2.0 m', data: p.time.map(() => 2.0),
+      { label: `${conv(2.0)} ${unit}`, data: p.time.map(() => conv(2.0)),
         borderColor: cssVar('--nogo-line'), borderWidth: 1, borderDash: [2, 5], pointRadius: 0 },
     ];
 
-    const opts = baseOptions(`Sea state near ${p.name} — Météo-France MFWAM`, 'm');
+    const opts = baseOptions(`Sea state near ${p.name} — Météo-France MFWAM`, unit);
     opts.plugins.tooltip.callbacks.afterBody = items => {
       const i = items[0].dataIndex;
       const out = [];

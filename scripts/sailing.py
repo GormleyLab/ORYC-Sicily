@@ -7,7 +7,10 @@ consequential kind of bug in this project.
 Conventions used throughout:
   * Directions are degrees TRUE, 0-360, and meteorological: a "wind direction"
     is the direction the wind blows FROM.
-  * Wind speeds are knots. Wave heights are metres.
+  * Wind speeds are knots. Wave heights are metres everywhere in this module -
+    arguments, thresholds and returned numbers alike. The fleet is American and
+    reads seas in feet, so only the prose in `reasons` and `reason` is converted,
+    by `feet()`, at the moment it is written.
   * A "sector" is [from, to] clockwise in degrees true, and may wrap past 360.
 """
 
@@ -28,6 +31,18 @@ PLANNING_SPEED_KT = 6.0
 WIND_GO_KT, WIND_CAUTION_KT = 18.0, 25.0
 GUST_GO_KT, GUST_CAUTION_KT = 24.0, 32.0
 WAVE_GO_M, WAVE_CAUTION_M = 1.25, 2.0
+
+# The models publish metres and weather.json stores metres; the fleet reads
+# feet. One decimal, not whole feet - the thresholds land on 4.1 and 6.6 ft and
+# rounding would produce the nonsense "7 ft exceeds 7 ft".
+M_TO_FT = 3.28084
+
+
+def feet(metres: float | None) -> str:
+    """Metres to a feet figure for display. Prose only - never for maths."""
+    if metres is None:
+        return "-"
+    return f"{metres * M_TO_FT:.1f}"
 
 # ECMWF IFS open data is 3-hourly at range and its gust field is a maximum over
 # the interval, not an instantaneous value. Against a light mean wind that
@@ -243,10 +258,11 @@ def leg_verdict(wind_kt: float | None, gust_kt: float | None,
     if wave_m is not None:
         if wave_m > WAVE_CAUTION_M:
             verdict = _worst(verdict, "no-go")
-            reasons.append(f"Significant wave {wave_m:.1f} m exceeds {WAVE_CAUTION_M:.1f} m")
+            reasons.append(f"Significant wave {feet(wave_m)} ft exceeds "
+                           f"{feet(WAVE_CAUTION_M)} ft")
         elif wave_m > WAVE_GO_M:
             verdict = _worst(verdict, "caution")
-            reasons.append(f"Significant wave {wave_m:.1f} m")
+            reasons.append(f"Significant wave {feet(wave_m)} ft")
 
     # Wind against swell stands the sea up short and steep - worth a flag even
     # when neither figure alone is alarming.
@@ -326,7 +342,7 @@ def shelter_score(exposed_sector: Sequence[float] | None,
         bits.append(f"Open to the {compass_point(wind_dir)}, but only "
                     f"{(wind_kt or 0):.0f} kt at the moment")
     if swell_exposure > 0.5 and (swell_m or 0) >= 0.5:
-        bits.append(f"{swell_m:.1f} m swell from {compass_point(swell_dir)} wraps in")
+        bits.append(f"{feet(swell_m)} ft swell from {compass_point(swell_dir)} wraps in")
     if not bits:
         # Only claim shelter when there genuinely is a sheltered arc. A berth
         # open all round - Stromboli's roadstead - has none, and saying "wind

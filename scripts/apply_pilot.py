@@ -8,6 +8,13 @@ wash. This applies what the pilot book states directly, which is the check the
 Source: Imray, *Italian Waters Pilot*, Isole Eolie chapter, pp. 371-383.
 Only the factual shelter directions, waypoints and hazards are recorded here.
 
+The pilot gives depths and distances in metres; the fleet is American and reads
+feet, so the notes below quote feet first and keep the pilot's own figure in
+brackets - "16-33 ft (5-10 m)". Do not drop the bracketed figure. It is what
+lets the next reader check the note against page 377, and charter boats in
+Italy usually have their depth sounder set in metres, so it is also the number
+on the instrument in front of the skipper.
+
 Where the pilot gives an explicit shelter sector the entry is marked verified.
 Where it does not - Drautto and Baia Milazzese are not described separately,
 and Portorosa is on the north Sicily coast, outside this chapter - the derived
@@ -56,7 +63,7 @@ PILOT = {
     "lipari_valle_muria": {
         "pos": None,
         "sector": [180, 280],
-        "shelter": "Open W and south. Anchor towards the N end in 5-10 m.",
+        "shelter": "Open W and south. Anchor towards the N end in 16-33 ft (5-10 m).",
         "hazard": "Reef at the S end of the bay.",
     },
     "panarea_sanpietro": {
@@ -64,13 +71,13 @@ PILOT = {
         "sector": [30, 180],
         "shelter": "Adequate in settled weather, but with any fresh wind or "
                    "moderate sea from anywhere in the E this is not the place to be.",
-        "hazard": "Cannot anchor within 200 m of the pier; keep clear of the laid "
-                  "moorings. Yachts generally not permitted on the pier.",
+        "hazard": "Cannot anchor within 650 ft (200 m) of the pier; keep clear of "
+                  "the laid moorings. Yachts generally not permitted on the pier.",
     },
     "panarea_zimmari": {
         "pos": (dm(38, 37.6), dm(15, 4.0)),
         "sector": [80, 190],
-        "shelter": "Open E and south. Anchor in 5-10 m on sand, good holding.",
+        "shelter": "Open E and south. Anchor in 16-33 ft (5-10 m) on sand, good holding.",
         "hazard": "The Punta Milazzese area is technically off limits - navigating "
                   "and anchoring in the vicinity is prohibited, and you may be told "
                   "to move on.",
@@ -91,9 +98,9 @@ PILOT = {
         "sector": [345, 99],
         "shelter": "A short mole on the E side of the island; yachts anchor off in "
                    "settled weather. About 20 visitors' moorings laid in the bay.",
-        "hazard": "An old groyne runs about 100 m SE from the ferry mole, just under "
-                  "the surface and hard to see. Bottom stoney with weed; holding not "
-                  "good everywhere.",
+        "hazard": "An old groyne runs about 330 ft (100 m) SE from the ferry mole, "
+                  "just under the surface and hard to see. Bottom stoney with weed; "
+                  "holding not good everywhere.",
     },
     "filicudi_pecorini": {
         "pos": (dm(38, 33.5), dm(14, 34.0)),
@@ -116,7 +123,7 @@ PILOT = {
         "sector": [90, 190],
         "shelter": "A short mole off a hamlet on the S coast. Open E-S.",
         "hazard": "Limited anchoring room inside the laid local moorings; space "
-                  "outside them in 15 m+.",
+                  "outside them in 50 ft+ (15 m+).",
     },
 }
 

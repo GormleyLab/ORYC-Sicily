@@ -46,6 +46,19 @@ Read `CLAUDE.md` § *Safety-critical data* first if you have not already.
 | `hazard_note` | no | Printed as a warning on the berth card |
 | `no_anchoring` | no | `true` where anchoring is prohibited and you must take a buoy |
 
+### Units in the notes
+
+`shelter_note` and `hazard_note` are printed to the fleet verbatim, and the
+fleet is American. **Depths and distances go in feet, with the source's metric
+figure in brackets** — `16-33 ft (5-10 m)`, `650 ft (200 m)`. Feet first, every
+time. Keep the bracket: the Imray pilot is metric, so it is what lets the next
+reader check the note against the book, and a charter boat in Italy usually has
+its depth sounder set in metres. `test_crew_facing_notes_lead_with_feet`
+enforces the order. Bearings stay degrees true, passage distances stay nautical
+miles, and the provenance fields (`position_source`, `sector_source`,
+`verification_note`) stay metric — they are engineering notes comparing against
+OSM and chart data, not something the fleet reads.
+
 ### `exposed_sector` in detail
 
 Degrees **true**, **meteorological** (the direction weather comes *from*),

@@ -224,7 +224,35 @@ simulated data.
 ## Conventions
 
 * Directions are degrees TRUE and meteorological (the direction wind comes
-  FROM). Speeds in knots, heights in metres.
+  FROM). Speeds in knots. Heights are **stored in metres and shown in feet** -
+  the fleet is American. `data/weather.json`, the model fields and every
+  threshold in `sailing.py` stay metric; conversion happens only at the point
+  of display, by `ORYC.height` in the browser and `sailing.feet` for the prose
+  Python writes into `reasons` and `reason`. `briefing.py` converts into the
+  payload instead, naming every converted key `*_ft`, because ground rule 1
+  forbids Claude from stating a number the payload does not contain. Tests in
+  both suites assert the rendered figure is the converted one - a regression
+  here prints a sea a third of its real height with "ft" still on it.
+* **Depths and distances in crew-facing prose are feet, with the source's
+  metric figure in brackets** - `16-33 ft (5-10 m)`. The Imray pilot is metric
+  and `apply_pilot.py` transcribes it, so the bracket is what lets the next
+  reader check a note against page 377; a charter boat in Italy also has its
+  depth sounder in metres. Feet always come first and a test enforces it. The
+  provenance fields - `position_source`, `sector_source`, `verification_note` -
+  stay metric: they compare coordinates against OSM and chart data and nobody
+  in the fleet reads them. Passage distances stay nautical miles.
+* **The ft/m switch in the masthead moves the numbers only.** It is a header
+  toggle beside the theme buttons, persisted in `localStorage` under
+  `oryc-units`, defaulting to feet. Because every figure is converted at render
+  time from metric storage, switching is just `renderAll()` plus
+  `ORYCCharts.refresh()` - there is no second copy of the data to keep in step.
+  What it cannot move is prose written at build time: the Claude briefing, the
+  `reasons`/`reason` strings from `sailing.py`, and the pilot-book notes all
+  stay in feet. That is deliberate, not an oversight - you cannot safely
+  regex-rewrite a model-written sentence about wave height - and `ORYC.unitNote`
+  puts a caveat in the status strip whenever metres are showing so a skipper
+  meets it before the mismatch. `test_render.js` drives the real button and
+  checks ft → m → ft is byte-identical.
 * Status is never conveyed by colour alone — every chip carries a glyph and a
   word, so it survives colour blindness and greyscale printing.
 * Everything reaching `innerHTML` goes through `ORYC.esc`.

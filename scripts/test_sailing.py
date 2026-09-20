@@ -166,6 +166,72 @@ def test_real_gust_in_a_real_breeze_still_triggers():
     assert any("Gusts" in r and "interval-maximum" not in r for r in out["reasons"])
 
 
+def test_crew_facing_notes_lead_with_feet():
+    """Depths and distances the fleet reads must be feet-first.
+
+    The pilot book is metric and `apply_pilot.py` transcribes it, so the easy
+    regression is a new note going in straight from the book. The bracketed
+    metric figure is deliberate and stays - a charter boat in Italy has its
+    depth sounder in metres - but it must follow the feet, never replace it.
+    """
+    import re
+    notes = []
+    for key, m in MOORINGS.items():
+        for field in ("shelter_note", "hazard_note"):
+            if m.get(field):
+                notes.append((f"{key}.{field}", m[field]))
+    for key, poi in (WAYPOINTS.get("points_of_interest") or {}).items():
+        if poi.get("note"):
+            notes.append((f"{key}.note", poi["note"]))
+    assert notes, "no crew-facing notes found - has the schema changed?"
+
+    metric = re.compile(r"[0-9][0-9.,]*\s?(?:-[0-9.,]+)?\s?m[+]?\b")
+    feet_then_metric = re.compile(
+        r"[0-9][0-9.,]*\s?(?:-[0-9.,]+)?\s?ft[+]?\s*"
+        r"[(][^)]*m[+]?[)]")
+    for key, text in notes:
+        for hit in metric.finditer(text):
+            covered = any(mm.start() <= hit.start() and hit.end() <= mm.end()
+                          for mm in feet_then_metric.finditer(text))
+            assert covered, (
+                f"{key} states {hit.group(0)!r} without a feet figure in front "
+                f"of it - the fleet reads feet: {text!r}")
+
+
+def test_wave_prose_is_feet_not_metres():
+    """The fleet is American and the page shows feet. Thresholds and arguments
+    stay metric - only the prose converts - so a regression here reads as a
+    sea a third of its real height, with the word "ft" still attached."""
+    out = s.leg_verdict(10, 14, 2.4)
+    reason = next(r for r in out["reasons"] if "wave" in r)
+    assert "7.9 ft" in reason, reason
+    assert "6.6 ft" in reason, reason        # WAVE_CAUTION_M = 2.0 m
+    assert " m" not in reason, reason
+
+    mild = s.leg_verdict(10, 14, 1.5)
+    assert "4.9 ft" in mild["reasons"][0], mild["reasons"]
+
+
+def test_swell_prose_is_feet_not_metres():
+    out = s.shelter_score([60, 120], wind_dir=90, wind_kt=20,
+                          swell_dir=90, swell_m=1.5)
+    assert "4.9 ft swell" in out["reason"], out["reason"]
+    assert " m swell" not in out["reason"], out["reason"]
+
+
+def test_thresholds_stay_metric():
+    """Only the prose is converted. The constants feed the maths and the tests
+    above, and flipping them to feet would silently move every verdict."""
+    assert s.WAVE_GO_M == 1.25 and s.WAVE_CAUTION_M == 2.0
+    assert s.leg_verdict(10, 14, 1.3)["verdict"] == "caution"
+    assert s.leg_verdict(10, 14, 1.2)["verdict"] == "go"
+
+
+def test_feet_handles_a_missing_height():
+    assert s.feet(None) == "-"
+    assert s.feet(0) == "0.0"
+
+
 def test_gust_spike_detection_boundaries():
     assert s.is_gust_spike(4, 26)          # 6.5x on a light mean
     assert not s.is_gust_spike(20, 34)     # 1.7x in a real breeze

@@ -66,13 +66,30 @@ function makeChartStub() {
   return Chart;
 }
 
+/* A clickable stub button. The unit toggle is the one control whose whole
+   job is to re-render, so the test drives the real listener rather than
+   reaching past it into the module. */
+function makeButton(dataset) {
+  const listeners = [];
+  const attrs = {};
+  return {
+    dataset, textContent: '',
+    addEventListener(ev, fn) { if (ev === 'click') listeners.push(fn); },
+    setAttribute(k, v) { attrs[k] = v; },
+    getAttribute(k) { return k in attrs ? attrs[k] : null; },
+    click() { listeners.forEach(fn => fn()); },
+    classList: { add() {}, remove() {}, toggle: () => false },
+  };
+}
+const unitButtons = [makeButton({ unitSet: 'ft' }), makeButton({ unitSet: 'm' })];
+
 const elements = new Map();
 const document = {
   getElementById(id) {
     if (!elements.has(id)) elements.set(id, makeEl(id));
     return elements.get(id);
   },
-  querySelectorAll: () => [],
+  querySelectorAll: (sel) => (sel === '[data-unit-set]' ? unitButtons : []),
   body: {},
   documentElement: { getAttribute: () => null, setAttribute() {}, removeAttribute() {} },
   addEventListener() {},
@@ -191,7 +208,7 @@ setImmediate(() => {
   console.log('\nScanning for undefined values leaking into the page…');
   for (const id of Object.keys(sections)) {
     const out = html(id);
-    for (const bad of ['undefined', 'NaN', '[object Object]', 'null kt', 'null m']) {
+    for (const bad of ['undefined', 'NaN', '[object Object]', 'null kt', 'null ft']) {
       if (out.includes(bad)) {
         const at = out.indexOf(bad);
         fail(`#${id} contains "${bad}" — …${out.slice(Math.max(0, at - 70), at + 30)}…`);
@@ -199,6 +216,176 @@ setImmediate(() => {
     }
   }
   if (!failures) ok('no undefined/NaN found in any section');
+
+  // Sea state is stored in metres and shown in feet. The conversion lives at
+  // the render boundary, so a regression there is silent in a browser: the
+  // page still shows a plausible number, just a third of the real sea. Check
+  // the arithmetic against the data rather than only looking for the word.
+  console.log('\nChecking sea state is shown in feet…');
+  const M_TO_FT = 3.28084;
+
+  // Pre-trip every real leg is beyond the horizon and the only heights on the
+  // page are the berths' swell, so check whichever section actually has data.
+  const samples = [];
+  for (const l of weather.legs) {
+    for (const w of l.windows || []) {
+      if (w.max_wave_m != null) {
+        samples.push({ id: 'legs-body', m: w.max_wave_m,
+                       where: `${l.id} departing ${w.depart}` });
+        break;
+      }
+    }
+  }
+  for (const b of weather.berths || []) {
+    for (const o of b.options || []) {
+      if (o.swell_m != null && o.swell_m > 0) {
+        samples.push({ id: 'berths-body', m: o.swell_m,
+                       where: `${o.name} on ${b.date}` });
+        break;
+      }
+    }
+  }
+
+  // The "right now" cards print a sea height every day of the year, trip or
+  // not. Whatever figure they show must be one of the model's metre values
+  // multiplied out, not the metre value itself.
+  const nowOut = html('now-body');
+  const shown = [...nowOut.matchAll(/sea ([0-9.]+) ft/g)].map(m => m[1]);
+  if (!shown.length) {
+    ok('no sea height on the right-now cards in this run');
+  } else {
+    // Only the values at the hour the cards actually render. Compared against
+    // the whole week's series this check is vacuous: somewhere in seven days
+    // there is a metre figure that collides with a feet figure, and a card
+    // left in metres passes. `ORYC` is a lexical const, not a property of the
+    // sandbox, so it has to be evaluated inside the context to be reached.
+    const api = vm.runInContext('ORYC', sandbox);
+    const inFeet = new Set(), inMetres = new Set();
+    for (const pt of Object.values(weather.series || {})) {
+      const ser = (pt.sea || {}).series || {};
+      const i = api.nowIndex(pt.time || []);
+      const v = i < 0 ? null : (ser.wave_height || [])[i];
+      if (v == null) continue;
+      inFeet.add((v * M_TO_FT).toFixed(1));
+      inMetres.add(v.toFixed(1));
+    }
+    const wrong = shown.filter(v => !inFeet.has(v));
+    if (!inFeet.size) {
+      fail('#now-body shows a sea height but no point has wave data at this hour');
+    } else if (!wrong.length) {
+      ok(`right-now cards: ${shown.length} sea heights, all converted (${shown.join(', ')} ft)`);
+    } else if (wrong.some(v => inMetres.has(v))) {
+      fail(`#now-body prints "sea ${wrong[0]} ft" but that is the metre figure ` +
+           `unconverted — the label says feet and the number does not`);
+    } else {
+      fail(`#now-body sea height ${wrong[0]} ft is not this hour's wave height ` +
+           `at any point (expected one of ${[...inFeet].join(', ')})`);
+    }
+  }
+
+  if (!samples.length) {
+    ok('no leg or berth height in this run — nothing further to convert');
+  } else {
+    for (const sample of samples.slice(0, 4)) {
+      const out = html(sample.id);
+      const ft = (sample.m * M_TO_FT).toFixed(1);
+      if (out.includes(ft)) {
+        ok(`${sample.id}: ${sample.m} m renders as ${ft} ft (${sample.where})`);
+      } else if (out.includes(sample.m.toFixed(1))) {
+        fail(`#${sample.id} still shows ${sample.m.toFixed(1)} for a ${sample.m} m ` +
+             `height at ${sample.where} — expected ${ft} ft`);
+      } else {
+        fail(`#${sample.id} shows neither ${ft} ft nor the metre figure for ` +
+             `${sample.where} — did the height stop rendering?`);
+      }
+    }
+    if (html('legs-body').includes('<th>') && !/Sea ft/.test(html('legs-body'))) {
+      fail('#legs-body hour table header does not say "Sea ft"');
+    }
+  }
+  // --- the ft / m toggle ---------------------------------------------------
+  // Switching units is a full re-render driven from `state`, so the risk is
+  // not the arithmetic - it is a section that never re-runs, or one that does
+  // and comes back subtly different. Drive the real button and check both.
+  console.log('\nChecking the ft / m toggle…');
+  {
+    const api = vm.runInContext('ORYC', sandbox);
+    const beforeCharts = calls.charts;
+    const feetHtml = {};
+    for (const id of ['now-body', 'legs-body', 'berths-body']) feetHtml[id] = html(id);
+
+    unitButtons[1].click();                       // switch to metres
+
+    if (api.units() !== 'm') {
+      fail(`clicking "m" left the unit at ${api.units()}`);
+    } else {
+      ok('toggle switched the unit to metres');
+    }
+
+    const metreShown = [...html('now-body').matchAll(/sea ([0-9.]+) m/g)].map(m => m[1]);
+    const expected = new Set();
+    for (const pt of Object.values(weather.series || {})) {
+      const ser = (pt.sea || {}).series || {};
+      const i = api.nowIndex(pt.time || []);
+      const v = i < 0 ? null : (ser.wave_height || [])[i];
+      if (v != null) expected.add(v.toFixed(1));
+    }
+    if (!metreShown.length) {
+      fail('#now-body prints no "sea N m" after switching to metres — did it re-render?');
+    } else if (metreShown.some(v => !expected.has(v))) {
+      fail(`#now-body metre figure ${metreShown.find(v => !expected.has(v))} is not ` +
+           `this hour's wave height (expected one of ${[...expected].join(', ')})`);
+    } else {
+      ok(`right-now cards in metres: ${metreShown.join(', ')} m`);
+    }
+
+    if (/Sea ft|<small>ft<\/small>/.test(html('legs-body'))) {
+      fail('#legs-body still labels a column "ft" after the switch to metres');
+    }
+    if (html('now-body').includes(' ft')) {
+      fail('#now-body still shows a ft figure after the switch to metres');
+    }
+    if (!html('status-line').includes('written notes quote feet')) {
+      fail('#status-line does not warn that the prose stays in feet while the ' +
+           'numbers are in metres');
+    } else {
+      ok('status strip flags that the written notes stay in feet');
+    }
+    if (calls.charts <= beforeCharts) {
+      fail('the sea chart was not redrawn on a unit change — its axis is stale');
+    } else {
+      ok(`charts redrawn on the switch (${calls.charts - beforeCharts} rebuilt)`);
+    }
+    if (unitButtons[1].getAttribute('aria-pressed') !== 'true' ||
+        unitButtons[0].getAttribute('aria-pressed') !== 'false') {
+      fail('aria-pressed does not follow the active unit');
+    }
+
+    unitButtons[0].click();                       // and back to feet
+
+    if (api.units() !== 'ft') {
+      fail(`clicking "ft" left the unit at ${api.units()}`);
+    }
+    // Round-tripping must be exact. If a section renders differently the
+    // second time, some piece of it is reading state it should not.
+    if (html('status-line').includes('written notes quote feet')) {
+      fail('#status-line still shows the metres caveat after switching back to feet');
+    }
+    const drifted = Object.keys(feetHtml).filter(id => html(id) !== feetHtml[id]);
+    if (drifted.length) {
+      fail(`switching to metres and back changed ${drifted.join(', ')} — ` +
+           `the re-render is not idempotent`);
+    } else {
+      ok('ft → m → ft round-trips to byte-identical output');
+    }
+  }
+
+  // Metres must not survive anywhere a height is printed.
+  for (const id of ['now-body', 'legs-body', 'berths-body']) {
+    const out = html(id);
+    const stray = out.match(/(?:sea|swell)\s[^<]*?\d\s?m\b/i);
+    if (stray) fail(`#${id} still prints a height in metres — "${stray[0]}"`);
+  }
 
   // Every leg and berth in the data must actually appear on the page.
   console.log('\nChecking data coverage…');

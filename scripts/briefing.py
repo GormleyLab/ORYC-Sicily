@@ -99,8 +99,10 @@ payload, say you do not have it rather than estimating.
 professional briefing does - for example "ECMWF IFS, 12Z run".
 3. Where the models disagree, say so plainly and give the range. Disagreement is \
 information the skippers need, not something to smooth over.
-4. Wind speeds in knots, wave and swell heights in metres, directions as compass \
-points. Times are local (CEST).
+4. Wind speeds in knots, wave and swell heights in FEET - the fleet is \
+American and the page shows feet throughout. Every height in the payload is \
+already in feet and its key name says so, so quote the figures as they stand and \
+never convert them to metres. Directions as compass points. Times are local (CEST).
 5. Be concrete and brief. These are experienced sailors reading on a phone in a \
 cockpit. No filler, no weather-presenter enthusiasm, no restating the question.
 6. This is a planning aid, not an official forecast. Never tell the fleet a \
@@ -108,6 +110,20 @@ passage is definitively safe. The computed go/caution/no-go verdicts in the \
 payload are conservative thresholds, not decisions - the skipper decides.
 7. If the payload shows conditions are simply benign, say so in one line. Do not \
 manufacture drama or a caution to seem useful."""
+
+
+def _ft(metres):
+    """Metres to feet for the payload.
+
+    weather.json and every model hold metres, but the page shows feet and the
+    briefing has to match it. Ground rule 1 forbids Claude from stating a
+    number that is not in the payload, so the conversion happens here rather
+    than being asked for in the prompt - and every converted key is named
+    `*_ft` so the unit travels with the figure.
+    """
+    if metres is None:
+        return None
+    return round(metres * s.M_TO_FT, 1)
 
 
 def _trim_leg(leg: dict) -> dict:
@@ -129,7 +145,7 @@ def _trim_leg(leg: dict) -> dict:
         {
             "depart": w["depart"], "arrive": w["arrive"],
             "wind_kt": w["max_wind_kt"], "gust_kt": w["max_gust_kt"],
-            "wind_dir": w["wind_dir_label"], "wave_m": w["max_wave_m"],
+            "wind_dir": w["wind_dir_label"], "wave_ft": _ft(w["max_wave_m"]),
             "twa": w["twa"], "point_of_sail": w["point_of_sail"],
             "beaufort": w["beaufort"]["force"], "verdict": w["verdict"],
             "reasons": w["reasons"],
@@ -149,7 +165,7 @@ def _trim_berth(b: dict) -> dict:
         {"name": o["name"], "verdict": o["verdict"], "score": o["score"],
          "wind_kt": o.get("wind_kt"), "gust_kt": o.get("gust_kt"),
          "wind_dir": o.get("wind_dir_label"),
-         "swell_m": o.get("swell_m"), "swell_dir": o.get("swell_dir_label"),
+         "swell_ft": _ft(o.get("swell_m")), "swell_dir": o.get("swell_dir_label"),
          "reason": o["reason"], "exposed_sector": o["exposed_sector"],
          "no_anchoring": o.get("no_anchoring", False)}
         for o in b["options"]
@@ -204,10 +220,11 @@ def _conditions(doc: dict, waypoints: dict, hours: int = 72, step: int = 6) -> l
                 row["gust_kt"] = round(max(gusts), 1)
             sea = point.get("sea") or {}
             ser = sea.get("series") or {}
-            for key, label in (("wave_height", "wave_m"), ("swell_wave_height", "swell_m")):
+            for key, label in (("wave_height", "wave_ft"),
+                               ("swell_wave_height", "swell_ft")):
                 vals = ser.get(key) or []
                 if i < len(vals) and vals[i] is not None:
-                    row[label] = vals[i]
+                    row[label] = _ft(vals[i])
             rows.append(row)
 
         if rows:

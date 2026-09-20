@@ -61,6 +61,60 @@ const ORYC = (() => {
     return Number(v).toFixed(digits === undefined ? 0 : digits);
   }
 
+  /* --- height units ------------------------------------------------------
+     Every model publishes wave and swell height in metres and weather.json
+     stores them that way. Conversion happens here, at the point of display,
+     and nowhere else - which is what makes a toggle possible at all.
+
+     Feet is the default: the fleet is American. The toggle is for the crew
+     who think in metres, and for cross-checking the Italian forecast
+     bulletins, which are metric.
+
+     It switches the NUMBERS only. The skipper's briefing and the pilot-book
+     notes are prose written at build time, in feet, and no client-side
+     toggle can rewrite a sentence - see `unitNote` below, which says so on
+     the page rather than leaving the reader to notice the mismatch.
+
+     One decimal in both units: in feet the thresholds land on 4.1 and 6.6,
+     and rounding to whole feet would print "7 ft exceeds 7 ft". */
+  const M_TO_FT = 3.28084;
+  const UNIT_KEY = 'oryc-units';
+
+  let heightUnit = 'ft';
+  try {
+    const saved = localStorage.getItem(UNIT_KEY);
+    if (saved === 'm' || saved === 'ft') heightUnit = saved;
+  } catch (e) {}
+
+  /** The unit heights are currently shown in: 'ft' or 'm'. */
+  function units() { return heightUnit; }
+
+  function setUnits(next) {
+    heightUnit = next === 'm' ? 'm' : 'ft';
+    try { localStorage.setItem(UNIT_KEY, heightUnit); } catch (e) {}
+    return heightUnit;
+  }
+
+  /** A stored metre value as a number in the unit now on display. */
+  function toDisplay(metres) {
+    if (metres === null || metres === undefined || Number.isNaN(metres)) return null;
+    return heightUnit === 'm' ? Number(metres) : Number(metres) * M_TO_FT;
+  }
+
+  /** ...and formatted, with the same en-dash for a missing value as `num`. */
+  function height(metres, digits) {
+    return num(toDisplay(metres), digits === undefined ? 1 : digits);
+  }
+
+  /** Shown in the status strip while the numbers and the build-time prose
+   *  disagree. Returns '' in feet, when they agree and there is nothing to
+   *  explain. Saying it beats letting a skipper find it for themselves in a
+   *  sentence about wave height. */
+  function unitNote() {
+    return heightUnit === 'm'
+      ? 'figures in metres · written notes quote feet' : '';
+  }
+
   /** Deep link into Windy, centred on a coordinate with one overlay. The
    *  `?overlay,lat,lon,zoom` form is Windy's long-standing scheme. No key,
    *  no embed - just a link out to the app the fleet already uses. */
@@ -128,6 +182,7 @@ const ORYC = (() => {
   }
 
   return { esc, compass, chip, windArrow, num, windyUrl, windyLink,
+           height, toDisplay, units, setUnits, unitNote,
            dayLabel, hourLabel, ago, shelterColor, verdictClass, nowIndex, circularMean,
            MODEL_COLOR, VERDICT };
 })();
