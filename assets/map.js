@@ -108,7 +108,7 @@ const ORYCMap = (() => {
              `<div style="margin-top:4px;font-size:.85em">${esc(o.reason)}</div>` : '') +
         `<div style="margin-top:5px;font-size:.85em;color:#666">${esc(m.shelter_note)}</div>` +
         (m.no_anchoring ? `<div style="margin-top:5px;color:#d2232a;font-weight:600;font-size:.85em">Do not anchor — rocky</div>` : '') +
-        (m.verified ? '' : `<div style="margin-top:5px;font-size:.8em;color:#a96908">Position not yet chart-verified</div>`) +
+        (m.verified ? '' : `<div style="margin-top:5px;font-size:.8em;color:#a96908">Not yet chart-verified</div>`) +
         `<div style="margin-top:6px"><a href="${windyUrl(m.lat, m.lon, 'waves', 11)}" ` +
         `target="_blank" rel="noopener">Open in Windy ↗</a></div>`
       );

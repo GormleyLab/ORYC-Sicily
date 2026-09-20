@@ -61,9 +61,16 @@ turns those into the "tonight's berth" recommendation.
 
 These sectors were inferred from the itinerary text, **not from charts**. A
 wrong sector produces a confidently wrong shelter recommendation — the most
-consequential bug this project can have. Every entry carries `"verified"`, the
-page badges unverified ones, and a standing warning shows until they are all
-checked. Do not remove that warning to tidy the UI.
+consequential bug this project can have. Every entry carries `"verified"`, and
+the page badges unverified ones in two places: an `unverified` chip on the berth
+cards and a "Not yet chart-verified" line in the map popup. Do not remove those
+badges to tidy the UI.
+
+There used to be a page-level notice counting the unverified moorings as well.
+The owner had it dropped before the 2026 trip — there was no time to chart-check
+the last three and the banner alarmed the fleet without telling them anything
+actionable at the moment of choosing a berth. The badges carry the caveat
+instead, at the point of use. Do not reinstate the banner without asking.
 
 The same applies to the go/caution/no-go thresholds in `sailing.py` — they are
 conservative defaults for 45ft cats, meant to be tuned by the fleet captain, and

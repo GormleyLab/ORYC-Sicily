@@ -165,12 +165,6 @@
       n.push(['warn', '▲', 'Forecast is stale',
         `The last update failed, so these figures are from an earlier run. ${esc(w.stale_reason || '')}`]);
     }
-    const unver = Object.values((state.waypoints || {}).moorings || {}).filter(m => !m.verified).length;
-    if (unver) {
-      n.push(['warn', '▲', `${unver} mooring positions not yet chart-verified`,
-        'Coordinates and exposure sectors came from the itinerary text, not a chart. ' +
-        'Shelter rankings depend on them — treat as indicative.']);
-    }
     $('notices').innerHTML = n.map(([k, ico, title, body]) =>
       `<div class="notice notice-${k}"><span class="ico" aria-hidden="true">${ico}</span>` +
       `<span><b>${esc(title)}</b>${body}</span></div>`).join('');
@@ -506,7 +500,7 @@
     if (b.status !== 'forecast') {
       const list = b.options.map(o =>
         `<div class="opt"><div class="opt-top"><span class="opt-name">${esc(o.name)}` +
-        (o.verified ? '' : `<span class="badge-unver">unverified</span>`) +
+        (o.verified ? '' : `<span class="badge-unver" title="Exposure sector computed from coastline geometry, not read off a chart">unverified</span>`) +
         `</span></div><div class="why">${esc(o.shelter_note)}</div></div>`).join('');
       return `<div class="card">${head}<div class="card-pad">` +
         `<p class="small muted" style="margin:0 0 9px">Beyond the forecast horizon — ` +
@@ -530,7 +524,7 @@
         : 'enclosed';
       return `<div class="opt${i === 0 && b.choice_matters ? ' is-best' : ''}">` +
         `<div class="opt-top"><span class="opt-name">${esc(o.name)}` +
-        (o.verified ? '' : `<span class="badge-unver">unverified</span>`) +
+        (o.verified ? '' : `<span class="badge-unver" title="Exposure sector computed from coastline geometry, not read off a chart">unverified</span>`) +
         `</span>${chip(o.verdict)}</div>` +
         `<div class="why">${esc(o.reason)}</div>` +
         `<div class="nums">` +
