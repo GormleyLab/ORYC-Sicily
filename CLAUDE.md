@@ -45,9 +45,24 @@ on an outer buoy may be less sheltered than the stored figure. See
 
 A static GitHub Pages site for a yacht-club flotilla in the Aeolian Islands,
 3–10 October 2026. Shows the itinerary and a multi-model marine weather
-briefing that rebuilds on a cron — daily before the trip, twice daily during
-it. No build step: a GitHub Action runs Python, commits `data/weather.json`,
-and Pages serves it. The browser makes no API calls.
+briefing that rebuilds three times a day, at 05:40, 12:40 and 16:40 UTC — one
+slot per model cycle (00Z, the 06Z IFS/AIFS, ICON-2i's 12Z). No build step: a
+GitHub Action runs Python, commits `data/weather.json`, and Pages serves it.
+The browser makes no API calls.
+
+The Action is fired by **three cron-job.org jobs** that POST to its `dispatches`
+endpoint, not by its own `schedule:` crons — GitHub ran those four to five
+hours late on three consecutive days, which would put the morning briefing
+after the fleet had sailed. The GitHub crons stay as a fallback, but they only
+cover 05:40 and 16:40; there is no 12:40 cron in the workflow, so the midday
+slot depends on the external trigger alone. A dispatch is always treated as
+manual by the workflow's gate, so it never hits the pre-trip evening skip.
+See *How it updates* in `README.md`; the PAT expires 2026-10-23.
+
+A run costs about **$0.10**, all of it the Claude briefing (~12.5k in, ~1.6k
+out on Opus 5); Open-Meteo, Actions minutes and cron-job.org are free. Every
+run records its own `usage` in `data/weather.json` — read that rather than
+re-deriving the figure.
 
 See `README.md` for the full architecture and setup checklist, and
 `MOORINGS.md` for how to add, edit, remove or verify a mooring.
@@ -58,9 +73,10 @@ See `README.md` for the full architecture and setup checklist, and
   libraries (Leaflet, Chart.js). Deploy is `git push`. Chosen for reliability
   three weeks before departure over matching the Astro convention used in
   `GormleyLab-website`.
-* **GitHub Pages, not Render.** GH Actions gives free reliable cron; Render's
-  free tier sleeps and its cron jobs are paid. Committing the JSON also gives a
-  free forecast archive in git history.
+* **GitHub Pages, not Render.** GH Actions gives free cron; Render's free tier
+  sleeps and its cron jobs are paid. Committing the JSON also gives a free
+  forecast archive in git history. "Reliable" turned out to be wrong about the
+  cron — hence the external trigger above — but everything else holds.
 * **Open-Meteo is the only data source.** Windy appears as deep links only —
   its free API tier returns deliberately shuffled data and its paid tier
   excludes ECMWF. Google WeatherNext 3 deferred: needs a billed GCP project.

@@ -82,15 +82,61 @@ issue mid-trip.
 
 ## How it updates
 
-`.github/workflows/update-weather.yml` runs the pipeline and commits the result:
+`.github/workflows/update-weather.yml` runs the pipeline and commits the result
+**three times a day**. Each slot sits just after a model cycle lands, so every
+run carries genuinely new data rather than re-fetching the last one:
 
-* **once a day** (05:40 UTC / 07:40 CEST) until 3 October
-* **twice a day** (adding 16:40 UTC / 18:40 CEST) once underway
-* manually any time via *Actions → Update weather → Run workflow*
+| UTC | CEST | Picks up |
+|---|---|---|
+| 05:40 | 07:40 | the 00Z runs — the morning briefing, before anyone sails |
+| 12:40 | 14:40 | the 06Z IFS / AIFS cycle — an afternoon refresh |
+| 16:40 | 18:40 | ICON-2i's 12Z — overnight and next-morning outlook |
 
-Times sit just after the relevant model runs land. The browser makes no API
-calls — it renders a single pre-computed `data/weather.json`, so every update is
-also archived in the git history.
+You can also run it any time from *Actions → Update weather → Run workflow*.
+
+### What actually triggers it
+
+The workflow carries its own `schedule:` crons, but **GitHub does not run them on
+time**. Scheduled triggers are best-effort and queue behind platform load: over
+20–22 September the 05:40 UTC slot started at 10:03, 10:16 and 11:02 UTC — four
+to five hours late. During the trip that would land the morning briefing after
+the fleet had already sailed.
+
+So the real trigger is **external**: three jobs on [cron-job.org](https://cron-job.org)
+POST to the workflow's `dispatches` endpoint at 05:40, 12:40 and 16:40 UTC. A
+dispatch starts within seconds — measured end to end, trigger to committed
+`data/weather.json`, in 52 s.
+
+```
+POST https://api.github.com/repos/GormleyLab/ORYC-Sicily/actions/workflows/update-weather.yml/dispatches
+Accept: application/vnd.github+json
+Authorization: Bearer <fine-grained PAT>
+X-GitHub-Api-Version: 2022-11-28
+{"ref":"main"}
+```
+
+The PAT is scoped to this repository with **Actions: read and write** and nothing
+else, so the worst a compromise could do is trigger a weather update. It
+**expires 2026-10-23**, two weeks after disembarkation — after that the jobs fail
+and cron-job.org emails on the first failure.
+
+**GitHub's own crons stay in place as a fallback.** They cost nothing and are the
+only thing that still fires if the external trigger lapses; hours-late data beats
+none, the same trade the `stale` banner makes. The cost is a duplicate run on
+days GitHub is slow, which just commits a fresher forecast. Two asymmetries to
+know about: the workflow carries no 12:40 cron of its own, so **the midday slot
+has no fallback**; and its gate skips the *scheduled* evening run before
+3 October, so until then the fallback is morning-only. A dispatch is always
+treated as manual and proceeds, so none of this affects the external jobs.
+
+**What a run costs.** The Open-Meteo fetches, the Actions minutes (free on a
+public repo) and cron-job.org are all free; the only metered cost is the Claude
+briefing, at roughly 12.5k input and 1.6k output tokens — about **$0.10 a run**
+on Claude Opus 5, so ~$0.30 a day. Each run records its own `usage` in
+`data/weather.json`, so the figure can be re-checked rather than trusted.
+
+The browser makes no API calls — it renders a single pre-computed
+`data/weather.json`, so every update is also archived in the git history.
 
 If a fetch fails, the previous file is kept and flagged `stale`, and the page
 shows a warning banner — publishing labelled stale data beats publishing
@@ -160,6 +206,9 @@ horizon, so a normal run legitimately reports `legs with forecast: 0/7`. Use
 - [x] **Custom domain** — `sicily-flotilla.com` at Hover: four `@` A records to
       GitHub's Pages IPs (185.199.108-111.153), `www` CNAME to
       `gormleylab.github.io`; `CNAME` file in the repo root; HTTPS enforced
+- [x] **External trigger** — three cron-job.org jobs dispatching the workflow at
+      05:40, 12:40 and 16:40 UTC, because GitHub's own crons run hours late; see
+      *How it updates*. PAT expires 2026-10-23.
 - [ ] **Verify the waypoints** — see below, and `MOORINGS.md`
 
 Setup is done; the site is live at <https://sicily-flotilla.com/>.

@@ -1,11 +1,20 @@
 name: Update weather
 
-# Cadence, per the fleet's requirement:
-#   * once a day until the trip starts (the 05:40 UTC run only)
-#   * twice a day once underway (both runs)
+# The effective cadence is THREE runs a day - 05:40, 12:40 and 16:40 UTC - and
+# it is not driven by the schedule: block below. GitHub starts scheduled runs
+# hours late (four to five, measured), so three cron-job.org jobs POST to this
+# workflow's dispatches endpoint instead; see "How it updates" in README.md.
+# The crons here are a fallback only, and there is deliberately no 12:40 one:
+# a late midday run has no value, so that slot rides on the external trigger.
+#
+# The gate below therefore matters only for the two scheduled runs. A dispatch
+# is always treated as manual and proceeds, which is what gives the pre-trip
+# evening run - skipped when scheduled - its twice-daily behaviour today.
 #
 # Times are chosen around when the model runs actually land:
 #   05:40 UTC = 07:40 CEST - after the 00Z ECMWF IFS run is published
+#   12:40 UTC = 14:40 CEST - after the 06Z IFS / AIFS cycle, an afternoon
+#                            refresh (external trigger only)
 #   16:40 UTC = 18:40 CEST - after the 12Z ICON-2i run is published, in time
 #                            for an evening briefing like the captain's.
 # Italy is on CEST (UTC+2) for the whole trip; DST ends 25 Oct, after
