@@ -84,6 +84,19 @@ def fmt_date(d: dt.date) -> str:
     return f"{d.strftime('%a')} {d.day} {d.strftime('%b')}"
 
 
+def days_beyond_horizon(date: dt.date, horizon: set[str]) -> int:
+    """Days until `date` enters the published forecast window.
+
+    The horizon runs from today to the last hour any model publishes, and
+    advances one day per day, so a date `n` days past its end is `n` days of
+    waiting away. Zero means it is inside the window, or arriving now.
+    """
+    if not horizon:
+        return 0
+    last = dt.date.fromisoformat(max(horizon)[:10])
+    return max(0, (date - last).days)
+
+
 def rnd(v, n=1):
     return None if v is None else round(v, n)
 
@@ -205,14 +218,18 @@ def plan_leg(leg: dict, moorings: dict, atmo: dict, marine: dict,
 
     # Is this leg's date inside the published forecast at all?
     if not any(k.startswith(date.isoformat()) for k in horizon):
-        days_out = (date - dt.datetime.now(TZ).date()).days
         out["status"] = "beyond_horizon"
-        out["available_in_days"] = max(0, days_out - 5)
+        # Measure against where the published forecast actually ends rather
+        # than a hardcoded span: the window rolls forward a day per day, so
+        # this date arrives once the horizon reaches it. Guessing the span
+        # printed a countdown a day longer than the wait really was.
+        wait = days_beyond_horizon(date, horizon)
+        out["available_in_days"] = wait
         out["message"] = (
             f"{fmt_date(date)} is still beyond the forecast horizon. "
             f"Wind and sea for this passage appear about "
-            f"{max(0, days_out - 5)} day(s) from now."
-        ) if days_out > 5 else "Forecast for this passage is arriving now."
+            f"{wait} day(s) from now."
+        ) if wait else "Forecast for this passage is arriving now."
         return out
 
     out["status"] = "forecast"

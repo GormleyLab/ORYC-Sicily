@@ -3,6 +3,7 @@
 Run: python -m pytest scripts/ -q
 """
 
+import datetime as dt
 import json
 import math
 import pathlib
@@ -10,6 +11,7 @@ import pathlib
 import pytest
 
 import sailing as s
+import update_weather as uw
 
 DATA = pathlib.Path(__file__).resolve().parent.parent / "data"
 WAYPOINTS = json.loads((DATA / "waypoints.json").read_text(encoding="utf-8"))
@@ -478,3 +480,44 @@ def test_circular_mean_near_north():
     assert s.circular_mean([350, 10]) == pytest.approx(0, abs=0.5)
     assert s.circular_mean([80, 100]) == pytest.approx(90, abs=0.5)
     assert s.circular_mean([]) is None
+
+
+# --- Forecast horizon countdown ---------------------------------------------
+
+def _horizon(start: dt.date, days: int) -> set[str]:
+    """The timestamp set Open-Meteo returns: `days` days from `start`, hourly."""
+    return {f"{(start + dt.timedelta(days=d)).isoformat()}T{h:02d}:00"
+            for d in range(days) for h in range(24)}
+
+
+def test_countdown_matches_the_day_the_forecast_actually_arrives():
+    """The ring on a beyond-horizon leg card counts real days, not a guess.
+
+    With a 7-day window published on the 23rd the horizon ends on the 29th, so
+    a 4 October passage is five days of waiting away - it appears in the run on
+    the 28th. Deriving the wait from a hardcoded span printed six.
+    """
+    horizon = _horizon(dt.date(2026, 9, 23), 7)
+    assert uw.days_beyond_horizon(dt.date(2026, 10, 4), horizon) == 5
+    assert uw.days_beyond_horizon(dt.date(2026, 10, 10), horizon) == 11
+
+
+def test_countdown_is_zero_once_the_horizon_reaches_the_date():
+    horizon = _horizon(dt.date(2026, 9, 28), 7)
+    # The horizon ends 4 October, so both of these are inside it.
+    assert uw.days_beyond_horizon(dt.date(2026, 10, 4), horizon) == 0
+    assert uw.days_beyond_horizon(dt.date(2026, 9, 30), horizon) == 0
+
+
+def test_countdown_follows_the_window_rather_than_a_fixed_span():
+    """A longer fetch must shorten the wait, with no second constant to edit."""
+    short = _horizon(dt.date(2026, 9, 23), 7)
+    long = _horizon(dt.date(2026, 9, 23), 10)
+    target = dt.date(2026, 10, 4)
+    assert uw.days_beyond_horizon(target, short) == 5
+    assert uw.days_beyond_horizon(target, long) == 2
+
+
+def test_countdown_survives_a_total_fetch_failure():
+    """No horizon at all means no countdown to promise - not a crash."""
+    assert uw.days_beyond_horizon(dt.date(2026, 10, 4), set()) == 0
