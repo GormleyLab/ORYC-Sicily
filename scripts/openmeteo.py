@@ -13,6 +13,7 @@ so those are fetched and surfaced rather than left implicit.
 from __future__ import annotations
 
 import datetime as dt
+import time
 from typing import Any
 
 import requests
@@ -25,6 +26,15 @@ MARINE_HOST = "https://marine-api.open-meteo.com"
 
 TIMEZONE = "Europe/Rome"
 TIMEOUT = 45
+
+# Open-Meteo occasionally answers HTTP 200 with a body that is not JSON - an
+# edge node serving an error page, or a truncated response. It cleared on its
+# own within minutes on 2026-09-23, but by then the 05:40 run had published
+# `stale` and the fleet had no fresh briefing until the next slot. A run is
+# only fired three times a day, so a few seconds of retrying here is much
+# cheaper than waiting hours for the next one.
+RETRIES = 3
+RETRY_WAIT = 4
 
 # Atmospheric models, in the order we prefer to trust them.
 ATMO_MODELS = [
@@ -106,13 +116,38 @@ class OpenMeteoError(RuntimeError):
 
 
 def _get(url: str, params: dict[str, Any] | None = None) -> Any:
-    try:
-        r = requests.get(url, params=params, timeout=TIMEOUT)
-    except requests.RequestException as e:
-        raise OpenMeteoError(f"request to {url} failed: {e}") from e
-    if r.status_code != 200:
-        raise OpenMeteoError(f"{url} returned HTTP {r.status_code}: {r.text[:300]}")
-    return r.json()
+    """GET and decode JSON, retrying the failures that are worth retrying.
+
+    Every error leaves this function as an OpenMeteoError naming the URL, so
+    the message that reaches `stale` in weather.json says what went wrong.
+    A bare JSONDecodeError from `r.json()` did not - it reported
+    "Expecting value: line 1 column 1" with no URL, status or body, which is
+    what the page showed the fleet on 2026-09-23.
+    """
+    last = ""
+    for attempt in range(1, RETRIES + 1):
+        try:
+            r = requests.get(url, params=params, timeout=TIMEOUT)
+        except requests.RequestException as e:
+            last = f"request failed: {e}"
+        else:
+            if r.status_code != 200:
+                last = f"HTTP {r.status_code}: {r.text[:300]}"
+                # 4xx other than rate limiting will not fix itself.
+                if r.status_code != 429 and r.status_code < 500:
+                    break
+            else:
+                try:
+                    return r.json()
+                except ValueError:
+                    ctype = r.headers.get("content-type", "unknown")
+                    last = (f"HTTP 200 but body is not JSON "
+                            f"(content-type {ctype}, {len(r.content)} bytes): "
+                            f"{r.text[:300]!r}")
+        if attempt < RETRIES:
+            time.sleep(RETRY_WAIT * attempt)
+
+    raise OpenMeteoError(f"{url} - {last} (after {attempt} attempts)")
 
 
 # --- Model metadata ---------------------------------------------------------
