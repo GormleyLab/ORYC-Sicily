@@ -179,6 +179,14 @@ setImmediate(() => {
   // departure table, without them we demand the beyond-horizon messaging.
   const hasForecast = weather.legs.some(l => l.status === 'forecast');
   const hasBerths = weather.berths.some(b => b.status === 'forecast');
+  // An enclosed basin has a null sector and renders "enclosed", not "open ...".
+  // Portorosa is the first berth night, so on the day it alone enters the
+  // horizon there is no "open " anywhere - expect whichever the data implies.
+  const forecastOpts = weather.berths
+    .filter(b => b.status === 'forecast').flatMap(b => b.options);
+  const sectorNeedles = []
+    .concat(forecastOpts.some(o => o.exposed_sector) ? ['open '] : [])
+    .concat(forecastOpts.some(o => !o.exposed_sector) ? ['enclosed'] : []);
   console.log(hasForecast
     ? '  (forecast data present — checking the passage planner)'
     : '  (all legs beyond the forecast horizon — checking the pre-trip state)');
@@ -189,7 +197,7 @@ setImmediate(() => {
     'now-body': ['kt'],
     'legs-body': ['Course', 'Distance',
                   hasForecast ? 'recommended departure' : 'beyond the forecast horizon'],
-    'berths-body': hasBerths ? ['open ', 'swell'] : ['Beyond the forecast horizon'],
+    'berths-body': hasBerths ? [...sectorNeedles, 'swell'] : ['Beyond the forecast horizon'],
     'itinerary-body': ['Portorosa', 'Lipari', 'Stromboli', 'Salina', 'Filicudi'],
     'notes-body': ['Dining', 'Moorings'],
     // Pre-trip these two carry the whole value of the page, so they must not
