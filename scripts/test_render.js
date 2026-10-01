@@ -201,8 +201,10 @@ setImmediate(() => {
     'itinerary-body': ['Portorosa', 'Lipari', 'Stromboli', 'Salina', 'Filicudi'],
     'notes-body': ['Dining', 'Moorings'],
     // Pre-trip these two carry the whole value of the page, so they must not
-    // silently render empty.
-    'rehearsal-body': (weather.rehearsal || {}).available ? ['Passages'] : [],
+    // silently render empty. The rehearsal is hidden once real legs have a
+    // forecast, and checked separately below.
+    ...(((weather.rehearsal || {}).available && !hasForecast)
+      ? { 'rehearsal-body': ['Passages'] } : {}),
     // With no archive yet this section shows why, not a table - so the needle
     // only applies when there is something to show.
     'stability-body': (weather.verification || {}).available
@@ -477,7 +479,13 @@ setImmediate(() => {
   // Pre-trip these two sections carry the whole value of the page.
   console.log('\nChecking the pre-trip value sections…');
   const reh = weather.rehearsal || {};
-  if (reh.available) {
+  if (hasForecast) {
+    // Stubs default to hidden:false, so the body is the signal: renderRehearsal
+    // fills it and unhides the section in the same step.
+    if (html('rehearsal-body'))
+      fail('rehearsal shown alongside real forecasts - it should be hidden');
+    else ok('rehearsal hidden: real legs have forecasts');
+  } else if (reh.available) {
     const n = (reh.legs || []).length, m = (reh.berths || []).length;
     if (!n && !m) fail('rehearsal flagged available but carries no legs or berths');
     else ok(`rehearsal: ${n} legs, ${m} berths`);

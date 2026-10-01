@@ -233,10 +233,16 @@ def _conditions(doc: dict, waypoints: dict, hours: int = 72, step: int = 6) -> l
 
 
 def _trim_rehearsal(doc: dict) -> dict:
-    """The dry run of the real legs against the next few days' weather."""
+    """The dry run of the real legs against the next few days' weather.
+
+    Dropped once any real leg has a forecast, as the page drops it: dry-run
+    verdicts on fake dates would only compete with the real ones.
+    """
     r = doc.get("rehearsal") or {}
     if not r.get("available"):
         return {"available": False}
+    if any(l.get("status") == "forecast" for l in doc.get("legs") or []):
+        return {"available": False, "superseded_by_real_forecasts": True}
     return {
         "available": True,
         "what_this_is": r.get("note"),

@@ -454,11 +454,14 @@
 
   // --- daily rehearsal ------------------------------------------------------
   // Proves the analysis runs, every day, on real numbers - long before the
-  // trip dates come inside any model's horizon.
+  // trip dates come inside any model's horizon. Once any real leg has a
+  // forecast it is superseded and stays hidden: the same legs on fake dates
+  // beside the real ones read as a second, contradictory verdict.
 
   function renderRehearsal() {
     const r = state.weather.rehearsal;
     if (!r || !r.available) return;
+    if ((state.weather.legs || []).some(l => l.status === 'forecast')) return;
 
     const legs = (r.legs || []).map(l => {
       const w = (l.windows || [])[0] || {};
